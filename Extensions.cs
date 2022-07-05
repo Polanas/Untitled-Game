@@ -37,9 +37,13 @@ static class Extensions
     public static void RemoveComponent<T>(this EcsWorld world, int entity) where T : struct =>
        world.GetPool<T>().Del(entity);
 
-    public static EcsSystems AddGroup(this EcsSystems systems, string groupName, bool defaultState, string eventWorldName, MyGameWindow game, params IEcsSystem[] nestedSystems)
+    public static EcsSystems AddGroup(this EcsSystems systems, string groupName, bool defaultState, string eventWorldName, MyGameWindow game, params MySystem[] nestedSystems)
     {
         game.AddGroupSystems(groupName, nestedSystems);
+
+        for (int i = 0; i < nestedSystems.Length; i++)
+            nestedSystems[i].GroupState = defaultState;
+
         return systems.Add(new EcsGroupSystem(groupName, defaultState, eventWorldName, nestedSystems));
     }
 }

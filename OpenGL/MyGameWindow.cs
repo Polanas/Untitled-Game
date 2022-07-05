@@ -44,41 +44,29 @@ class MyGameWindow : GameWindow
 
     public MyGameWindow(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) :
      base(gameWindowSettings, nativeWindowSettings)
-    { }
-
-    protected override void OnLoad()
     {
-        base.OnLoad();
-
-        GL.ClearColor(System.Drawing.Color.FromArgb(0, 0, 0, 0));
+        UpdateFrame += OnUpdate;
+        RenderFrame += OnRender;
 
         Init();
     }
 
     protected override void Dispose(bool disposing)
     {
-        if (_renderSystems != null)
-        {
-            _renderSystems.Destroy();
-            _physicsSystems.Destroy();
-            _networkSystems.Destroy();
-            _gameSystems.Destroy();
-        }
-
+        _renderSystems.Destroy();
+        _physicsSystems.Destroy();
+        _networkSystems.Destroy();
+        _gameSystems.Destroy();
 
         base.Dispose(disposing);
     }
 
-    protected override void OnUpdateFrame(FrameEventArgs args)
+    protected void OnUpdate(FrameEventArgs e)
     {
-        base.OnUpdateFrame(args);
-
 #if RELEASE
         if (!IsFocused)
             return;
 #endif
-
-
         _networkSystems.Run();
         _gameSystems.Run();
         _physicsSystems.Run();
@@ -92,10 +80,8 @@ class MyGameWindow : GameWindow
         SwapBuffers();
     }
 
-    protected override void OnRenderFrame(FrameEventArgs args)
+    protected void OnRender(FrameEventArgs args)
     {
-        base.OnRenderFrame(args);
-
 #if RELEASE
         if (!IsFocused)
             return;
@@ -130,6 +116,8 @@ class MyGameWindow : GameWindow
 
     private void Init()
     {
+        GL.ClearColor(System.Drawing.Color.FromArgb(0, 0, 0, 0));
+
 
 #if !DEBUG
         WindowState = WindowState.Fullscreen;
@@ -189,7 +177,7 @@ class MyGameWindow : GameWindow
             .Add(new SetPostProcessingProjectionSystem())
             .Add(new RemoveDebugEntitiesSystem())
             .Add(new SetGroupsStateSystem())
-            .DelHere<GroupSystemState>()
+            .DelHere<SetGroupSystemState>()
             .Inject()
             .Init();
 
@@ -209,7 +197,8 @@ class MyGameWindow : GameWindow
 
         _networkSystems = new EcsSystems(world, sharedData);
         _networkSystems
-            .Add(new PrintIPSystem())
+            .AddGroup(typeof(PrintIPSystem).Name, false, null, this,
+                new PrintIPSystem())
             .AddGroup("InitNetworkState", true, null, this,
                 new InitNetworkState())
             .AddGroup("ConnectToServer", false, null, this,

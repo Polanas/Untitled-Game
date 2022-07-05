@@ -25,6 +25,7 @@ namespace Leopotam.EcsLite.ExtendedSystems
 #endif
     public static class Extensions
     {
+        [Obsolete] //case theres an extension
         public static EcsSystems AddGroup(this EcsSystems systems, string groupName, bool defaultState, string eventWorldName, params IEcsSystem[] nestedSystems)
         {
             return systems.Add(new EcsGroupSystem(groupName, defaultState, eventWorldName, nestedSystems));

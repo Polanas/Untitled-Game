@@ -11,13 +11,13 @@ namespace Game;
 class SetGroupsStateSystem : MySystem
 {
 
-    private EcsPoolInject<GroupSystemState> _groupSystemStates;
+    private EcsPoolInject<SetGroupSystemState> _groupSystemStates;
 
     private EcsPoolInject<EcsGroupSystemState> _ecsGroupSystemStates;
 
     public override void Run(EcsSystems systems)
     {
-        foreach(var e in world.Filter<GroupSystemState>().End())
+        foreach(var e in world.Filter<SetGroupSystemState>().End())
         {
             ref var gss = ref _groupSystemStates.Value.Get(e);
 

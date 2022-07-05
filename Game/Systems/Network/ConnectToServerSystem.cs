@@ -23,9 +23,11 @@ class ConnectToServerSystem : MySystem
         {
             var ip = _task.Result;
 
-            sharedData.networkData.client = new(sharedData.gameData.game, 1337, ip, sharedData.networkData.gameName);
+            sharedData.networkData.client = new(sharedData.gameData.game, sharedData.networkData.port, ip, sharedData.networkData.gameName);
             sharedData.networkData.isActive = true;
-            world.AddComponent(world.AddEntity(), new GroupSystemState("ConnectToServer", false));
+            world.AddComponent(world.AddEntity(), new SetGroupSystemState("ConnectToServer", false));
+
+            world.AddComponent(world.AddEntity(), new SetGroupSystemState(typeof(PrintIPSystem).Name, true));
         }
     }
 

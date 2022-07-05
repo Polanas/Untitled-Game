@@ -5,11 +5,15 @@ namespace Game;
 abstract class MySystem : IEcsRunSystem, IEcsInitSystem, IEcsDestroySystem, IEcsSystem
 {
 
+    public bool GroupState { set => isGroupActive = value; }
+
     protected readonly EcsWorldInject _worldInject;
 
     protected SharedData sharedData;
 
     protected EcsWorld world;
+
+    protected bool isGroupActive;
 
     public virtual void Init(EcsSystems systems)
     {
@@ -21,7 +25,7 @@ abstract class MySystem : IEcsRunSystem, IEcsInitSystem, IEcsDestroySystem, IEcs
 
     public virtual void Destroy(EcsSystems systems) { }
 
-    public virtual void OnGroupDiactivate() { }
+    public virtual void OnGroupDiactivate() { isGroupActive = false; }
 
-    public virtual void OnGroupActivate() { }
+    public virtual void OnGroupActivate() { isGroupActive = true; }
 }

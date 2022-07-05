@@ -9,19 +9,24 @@ namespace Game;
 
 class PrintIPSystem : MySystem
 {
-    public override void Init(EcsSystems systems)
+
+    public override void OnGroupActivate()
     {
-        base.Init(systems);
+        base.OnGroupActivate();
 
-        var host = Dns.GetHostEntry(Dns.GetHostName());
+        var client = new HttpClient();
+        string ip;
 
-        foreach(var ip in host.AddressList)
+        using (HttpResponseMessage response = client.GetAsync("http://icanhazip.com").Result)
         {
-            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            using (HttpContent conent = response.Content)
             {
-                Console.WriteLine($"Your IP adress: {ip}");
-                return;
+                ip = conent.ReadAsStringAsync().Result;
             }
         }
+
+        Console.WriteLine($"Your IP adress: {ip}");
+
+        client.Dispose();
     }
 }

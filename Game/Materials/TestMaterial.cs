@@ -8,10 +8,6 @@ namespace Game;
 
 class TestMaterial : Material
 {
-
-//    [UniformInfo("time", UniformType.Float)]
-  //  public float time;
-
     [Uniform("testImage", UniformType.Texture)]
     private Texture _testTexture;
 

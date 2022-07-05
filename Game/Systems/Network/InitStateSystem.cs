@@ -21,14 +21,16 @@ class InitNetworkState : MySystem
             sharedData.networkData.isServer = answer == "s";
             sharedData.networkData.isClient = !sharedData.networkData.isServer;
 
-            world.AddComponent(world.AddEntity(), new GroupSystemState("InitNetworkState", false));
+            world.AddComponent(world.AddEntity(), new SetGroupSystemState("InitNetworkState", false));
 
             if (!sharedData.networkData.isServer)
-                world.AddComponent(world.AddEntity(), new GroupSystemState("ConnectToServer", true));
+                world.AddComponent(world.AddEntity(), new SetGroupSystemState("ConnectToServer", true));
             else
             {
                 sharedData.networkData.server = new(sharedData, 1337, "game");
                 sharedData.networkData.isActive = true;
+
+                world.AddComponent(world.AddEntity(), new SetGroupSystemState(typeof(PrintIPSystem).Name, true));
             }
         }
     }

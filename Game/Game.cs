@@ -46,6 +46,7 @@ class Game
         GL.Enable(EnableCap.DebugOutput);
         GL.Enable(EnableCap.DebugOutputSynchronous);
 
+#if !DEBUG
         try
         {
             using (gameWindiow)
@@ -55,6 +56,10 @@ class Game
         {
             _writer.WriteLine(e.ToString());
         }
+#else
+        using (gameWindiow)
+            gameWindiow.Run();
+#endif
 
         _writer.Dispose();
         _logFile.Dispose();
@@ -71,7 +76,7 @@ class Game
             sBuilder.Append(currentPath[i]);
             var bString = sBuilder.ToString();
 
-            if (bString.Contains(@"Untitled Game\Untitled Game  \"))
+            if (bString.Contains(@"Untitled Game\Untitled Game\"))
             {
                 Directory.SetCurrentDirectory(bString);
                 return;
