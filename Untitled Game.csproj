@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>ECSGame</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="OpenGL\Shaders\**" />
+    <Compile Remove="Textures\**" />
+    <EmbeddedResource Remove="OpenGL\Shaders\**" />
+    <EmbeddedResource Remove="Textures\**" />
+    <None Remove="OpenGL\Shaders\**" />
+    <None Remove="Textures\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Box2D.NetStandard" Version="1.0.4" />
+    <PackageReference Include="Lidgren.Network" Version="1.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="OpenTK" Version="4.7.1" />
+    <PackageReference Include="StbImageSharp" Version="2.27.8" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="LeoEcsLite\" />
+  </ItemGroup>
+
+</Project>
