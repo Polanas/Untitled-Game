@@ -32,8 +32,16 @@ class Game
         {
             Size = new Vector2i(1920, 1080),
             Title = "ECS Game",
+            StartFocused = true,
         };
-        var gameWindiow = new MyGameWindow(GameWindowSettings.Default, nativeWindowSettings);
+
+        GameWindowSettings gameWindowSettings = new()
+        {
+            UpdateFrequency = 60.0,
+            RenderFrequency = 60.0
+        };
+
+        var gameWindiow = new MyGameWindow(gameWindowSettings, nativeWindowSettings);
 
         var currentDateTime = DateTime.Now.ToString().Replace(":", ".");
 

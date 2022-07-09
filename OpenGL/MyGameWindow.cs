@@ -63,10 +63,6 @@ class MyGameWindow : GameWindow
 
     protected void OnUpdate(FrameEventArgs e)
     {
-#if RELEASE
-        if (!IsFocused)
-            return;
-#endif
         _networkSystems.Run();
         _gameSystems.Run();
         _physicsSystems.Run();
@@ -75,9 +71,9 @@ class MyGameWindow : GameWindow
             ReloadShaders(@"OpenGL\Shaders");
 
         if (Keyboard.Pressed(Keys.Escape))
+        {
             Close();
-
-        SwapBuffers();
+        }
     }
 
     protected void OnRender(FrameEventArgs args)
@@ -96,6 +92,7 @@ class MyGameWindow : GameWindow
 
         _renderSystems.Run();
 
+        SwapBuffers();
 
 #if DEBUG
         double currentTime = GLFW.GetTime();
@@ -116,18 +113,20 @@ class MyGameWindow : GameWindow
 
     private void Init()
     {
-        GL.ClearColor(System.Drawing.Color.FromArgb(0, 0, 0, 0));
 
 
 #if !DEBUG
         WindowState = WindowState.Fullscreen;
 #endif
 
+        GL.ClearColor(System.Drawing.Color.FromArgb(0, 0, 0, 0));
+
         ScreenSize = new Vector2i(1920, 1080);
         FullToPixelatedRatio = (Vector2)ScreenSize / new Vector2(512);
 
         CursorVisible = false;
         CursorGrabbed = true;
+        VSync = VSyncMode.On;
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.Enable(EnableCap.DepthTest);
@@ -158,6 +157,8 @@ class MyGameWindow : GameWindow
         LoadTextures(@"Content\Textures\Tilesets");
         LoadSounds(@"Content\Sounds");
 
+        GL.UseProgram(0);
+
         Mouse.Init(this);
         Keyboard.Init(this);
 
@@ -172,7 +173,7 @@ class MyGameWindow : GameWindow
             .Add(new CameraFollowCursorSystem())
             .Add(new CameraSystem())
             //update things
-            .Add(new DebugSystem())
+           // .Add(new DebugSystem())
             //.Add(new DrawCollisionsSystem())
             .Add(new SetPostProcessingProjectionSystem())
             .Add(new RemoveDebugEntitiesSystem())

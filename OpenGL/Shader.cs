@@ -23,11 +23,11 @@ class Shader
 
         vertShader = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vertShader, vertSource);
-        GL.CompileShader(vertShader);
+        CompileShader(vertShader);
 
         fragShader = GL.CreateShader(ShaderType.FragmentShader);
         GL.ShaderSource(fragShader, fragSource);
-        GL.CompileShader(vertShader);
+        CompileShader(fragShader);
 
         bool hasGShader = geometrySource != null;
 
@@ -35,7 +35,7 @@ class Shader
         {
             geomShader = GL.CreateShader(ShaderType.GeometryShader);
             GL.ShaderSource(handle, geometrySource);
-            GL.CompileShader(geomShader);
+            CompileShader(geomShader);
         }
 
         handle = GL.CreateProgram();
@@ -131,6 +131,28 @@ class Shader
         this.handle = handle;
         this.name = name;
         _uniformLocations = uniformLocations;
+    }
+
+    private static void CompileShader(int handle)
+    {
+        GL.CompileShader(handle);
+
+        GL.GetShader(handle, ShaderParameter.CompileStatus, out var code);
+        if (code != (int)All.True)
+        {
+            var infoLog = GL.GetShaderInfoLog(handle);
+            throw new Exception($"Error occurred while compiling Shader({handle}).\n\n{infoLog}");
+        }
+    }
+
+    private static void LinkProgram(int program, string name)
+    {
+        GL.LinkProgram(program);
+
+        GL.GetProgram(program, GetProgramParameterName.LinkStatus, out var code);
+
+        if (code != (int)All.True)
+            throw new Exception($"Error occurred while linking Program {name} ({program}). Log: {GL.GetProgramInfoLog(program)}");
     }
 
     public void Use() => GL.UseProgram(handle);
@@ -274,17 +296,5 @@ class Shader
         if (useShader)
             Use();
         GL.UniformMatrix4(_uniformLocations[name], true, ref value);
-    }
-
-    private static void LinkProgram(int program, string name)
-    {
-        GL.LinkProgram(program);
-
-        GL.GetProgram(program, GetProgramParameterName.LinkStatus, out var code);
-
-#if DEBUG
-        if (code != (int)All.True)
-            throw new Exception($"Error occurred while linking Program {name} ({program}). Log: {GL.GetProgramInfoLog(program)}");
-#endif
     }
 }
