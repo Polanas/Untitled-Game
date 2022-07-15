@@ -230,7 +230,7 @@ class MyGameWindow : GameWindow
             .Add(new LevelsSystem())
             .Add(new CameraFollowCursorSystem())
             .Add(new CameraSystem())
-            .Add(new DebugSystem())
+           // .Add(new DebugSystem())
             //update thing
             .Add(new PlayerSystem())
             // .Add(new DrawCollisionsSystem())
