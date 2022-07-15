@@ -20,7 +20,7 @@ class LevelsSystem : MySystem
         base.Init(systems);
 
         LoadLevels();
-        SetLevel(sharedData.gameData.levels[1]);
+        SetLevel(sharedData.gameData.levels["level1"]);
     }
 
     private void SetLevel(Level level)
@@ -115,7 +115,8 @@ class LevelsSystem : MySystem
             var ldtkJson = LdtkJson.FromJson(File.ReadAllText(file.FullName));
             var level = new Level(ldtkJson);
 
-            sharedData.gameData.levels.Add(level);
+            sharedData.gameData.levelsList.Add(level);
+            sharedData.gameData.levels[Path.GetFileNameWithoutExtension(file.FullName)] = level;
         }
     }
 }

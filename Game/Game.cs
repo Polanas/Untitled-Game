@@ -4,73 +4,63 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Windowing.Desktop;
-using OpenTK.Graphics.OpenGL;
-using System.Runtime.InteropServices;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Game;
 
 class Game
 {
-
-    private FileStream _logFile;
-
-    private const string USELESS_LOG = "will use VIDEO memory as the source for buffer object operations.";
-
-    private static TextWriter _writer;
-
-    private static DebugProc _debugProcCallback = DebugCallBack;
-
-    private static GCHandle _debugProcCallbackHandle;
-
     public void Run()
     {
 #if DEBUG
         SetWorkingPath();
 #endif
-
         NativeWindowSettings nativeWindowSettings = new NativeWindowSettings()
         {
-            Size = new Vector2i(1920, 1080),
-            Title = "ECS Game",
+            Size = new Vector2i(1920, 1081),
+            Title = "UntitledGame",
             StartFocused = true,
+            WindowBorder = OpenTK.Windowing.Common.WindowBorder.Hidden,
         };
 
-        GameWindowSettings gameWindowSettings = new()
-        {
-            UpdateFrequency = 60.0,
-            RenderFrequency = 60.0
-        };
+        GameWindowSettings gameWindowSettings = new();
 
-        var gameWindiow = new MyGameWindow(gameWindowSettings, nativeWindowSettings);
-
-        var currentDateTime = DateTime.Now.ToString().Replace(":", ".");
-
-        _logFile = File.Create($@"Logs\{currentDateTime}.txt");
-        _writer = new StreamWriter(_logFile);
-
-        _debugProcCallbackHandle = GCHandle.Alloc(_debugProcCallback);
-
-        GL.DebugMessageCallback(_debugProcCallback, IntPtr.Zero);
-        GL.Enable(EnableCap.DebugOutput);
-        GL.Enable(EnableCap.DebugOutputSynchronous);
+        MyGameWindow gameWindow = null;
 
 #if !DEBUG
         try
         {
-            using (gameWindiow)
-                gameWindiow.Run();
+#endif
+        gameWindow = new MyGameWindow(gameWindowSettings, nativeWindowSettings);
+
+#if !DEBUG
         }
         catch (Exception e)
         {
-            _writer.WriteLine(e.ToString());
+            Console.WriteLine(e);
+            Console.ReadKey();
         }
-#else
-        using (gameWindiow)
-            gameWindiow.Run();
 #endif
 
-        _writer.Dispose();
-        _logFile.Dispose();
+#if !DEBUG
+        try
+        {
+            using (gameWindow)
+                gameWindow.Run();
+        }
+        catch (Exception e)
+        {
+            if (MyGameWindow.LogWriter == null)
+            {
+                Console.WriteLine(e);
+                Console.ReadKey();
+            }
+            else MyGameWindow.LogWriter.WriteLine(e.ToString());
+        }
+#else
+        using (gameWindow)
+            gameWindow.Run();
+#endif
     }
 
 #if DEBUG
@@ -92,21 +82,4 @@ class Game
         }
     }
 #endif
-
-    private static void DebugCallBack(
-        DebugSource source,
-        DebugType type,
-        int id,
-        DebugSeverity severity,
-        int length,
-        IntPtr message,
-        IntPtr userParam)
-    {
-        string messageStr = Marshal.PtrToStringAnsi(message, length);
-
-        if (messageStr.Contains(USELESS_LOG))
-            return;
-
-        _writer.WriteLine($"{severity} {type} | {messageStr}");
-    }
 }

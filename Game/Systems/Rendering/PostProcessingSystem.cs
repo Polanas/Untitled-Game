@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using System.Threading.Tasks;
 
 namespace Game;
@@ -29,33 +29,23 @@ class PostProcessingSystem : RenderSystem
         //shader.UseTexture("shadowCastersTexture", sharedData.RenderData.shadowCastersTexture, TextureUnit.Texture3);
         //GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (IntPtr)0);
 
-        //GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
         _shader2.Use();
 
-        foreach (var layer in sharedData.renderData.layersList)
+        for (int i = 0; i < sharedData.renderData.layersList.Count; i++)
         {
-            Matrix4 projection;
-
-            projection = sharedData.renderData.layerProjections[layer];
+            Matrix4 projection = sharedData.renderData.layerProjections[sharedData.renderData.layersList[i]];
 
             _shader2.SetMatrix4("projection", projection);
-            layer.ScreenTexture.Use();
+            sharedData.renderData.layersList[i].ScreenTexture.Use();
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, EAO);
             GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (IntPtr)0);
         }
 
         GL.BindVertexArray(0);
-    }
-
-    private void DrawTexture(Texture texture, Matrix4? projection = null)
-    {
-        if (projection is not null)
-            shader.SetMatrix4("projection", projection.Value);
-
-        shader.UseTexture("spritesTexture", texture, TextureUnit.Texture0);
-        GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (IntPtr)0);
     }
 
     public override void Init(EcsSystems systems)
@@ -66,8 +56,7 @@ class PostProcessingSystem : RenderSystem
         VBO = GL.GenBuffer();
         EAO = GL.GenBuffer();
 
-        shader = ResourceManager.GetShader("postProcessing");
-        _shader2 = ResourceManager.GetShader("postProcessing1");
+        _shader2 = Content.GetShader("postProcessing1");
 
         uint[] indices =
         {

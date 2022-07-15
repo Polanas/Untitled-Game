@@ -9,8 +9,6 @@ namespace Game;
 class RenderData
 {
 
-    public Matrix4 UIProjection => _UIProjection;
-
     public Texture lightTexture;
 
     public Texture maskTexture;
@@ -19,7 +17,9 @@ class RenderData
 
     public Texture shadowCastersTexture;
 
-    public readonly DrawUtils drawUtils;
+    public EcsSystems renderSystems;
+
+    public readonly Graphics graphics;
 
     public readonly Dictionary<Layer, Matrix4> cameraLayerProjections;
 
@@ -31,13 +31,10 @@ class RenderData
 
     public readonly List<Layer> layersList;
 
-    private Matrix4 _UIProjection;
-
-    public RenderData(Matrix4 UIProjection, DebugDrawer debugDrawer, DrawUtils drawUtils)
+    public RenderData(DebugDrawer debugDrawer, Graphics graphics)
     {
-        _UIProjection = UIProjection;
         this.debugDrawer = debugDrawer;
-        this.drawUtils = drawUtils;
+        this.graphics = graphics;
 
         layers = new();
         layersList = new();

@@ -14,15 +14,13 @@ class Layer
 
     public readonly bool pixelated;
 
-    public readonly bool isHUD;
-
     public float cameraPosModifier;
 
     public int depth;
 
     private Texture _screenTexture;
 
-    public Layer(Vector2i size, bool pixelated, bool isHUD, int depth = 0, float cameraPosModifier = 1)
+    public Layer(Vector2i size, bool pixelated, int depth = 0, float cameraPosModifier = 1)
     {
         this.pixelated = pixelated;
         this.depth = depth;

@@ -1,19 +1,16 @@
-﻿#region stuff
+﻿#define ENABLE_LOGGING
+#region stuff
 
-using System;
-using System.Text;
-using System.Linq;
-using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL;
-using Leopotam.EcsLite.Di;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using Box2DX.Dynamics;
 using Box2DX.Collision;
 using Box2DX.Common;
-using System.Reflection;
+using Box2DX.Dynamics;
+using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
-using System.ComponentModel;
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Game;
 
@@ -23,6 +20,8 @@ class MyGameWindow : GameWindow
     public static Vector2i ScreenSize { get; private set; }
 
     public static Vector2 FullToPixelatedRatio { get; private set; }
+
+    public static TextWriter LogWriter => _writer;
 
     public EcsWorld world;
 
@@ -38,9 +37,27 @@ class MyGameWindow : GameWindow
 
     private double _summedRenderTime;
 
-    private double _lastElapsedTime;
+    private double _lastElapsedRenderTime;
+
+    private double _lastTIme;
+
+    private double _lastTIme2;
+
+    private double _elapsedUpdateTime;
+
+    private double _elapsedUpdateTime2;
 
     private int _framesCount;
+
+    private FileStream _logFile;
+
+    private const string USELESS_LOG = "will use VIDEO memory as the source for buffer object operations.";
+
+    public static TextWriter _writer;
+
+    private static DebugProc _debugProcCallback = DebugCallBack;
+
+    private static GCHandle _debugProcCallbackHandle;
 
     public MyGameWindow(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) :
      base(gameWindowSettings, nativeWindowSettings)
@@ -48,6 +65,9 @@ class MyGameWindow : GameWindow
         UpdateFrame += OnUpdate;
         RenderFrame += OnRender;
 
+#if ENABLE_LOGGING
+        InitFileLogger();
+#endif
         Init();
     }
 
@@ -59,6 +79,11 @@ class MyGameWindow : GameWindow
         _gameSystems.Destroy();
 
         base.Dispose(disposing);
+
+#if ENABLE_LOGGING
+        _writer.Dispose();
+        _logFile.Dispose();
+#endif
     }
 
     protected void OnUpdate(FrameEventArgs e)
@@ -68,16 +93,15 @@ class MyGameWindow : GameWindow
         _physicsSystems.Run();
 
         if (Keyboard.Pressed(Keys.R))
-            ReloadShaders(@"OpenGL\Shaders");
+            ReloadShaders(@"Content\Shaders");
 
-        if (Keyboard.Pressed(Keys.Escape))
-        {
+        if (KeyboardState.IsKeyPressed(Keys.Escape))
             Close();
-        }
     }
 
     protected void OnRender(FrameEventArgs args)
     {
+
 #if RELEASE
         if (!IsFocused)
             return;
@@ -96,36 +120,63 @@ class MyGameWindow : GameWindow
 
 #if DEBUG
         double currentTime = GLFW.GetTime();
-        double elapsed = currentTime - _lastElapsedTime;
+        double elapsed = currentTime - _lastElapsedRenderTime;
 
         _summedRenderTime += elapsed;
 
         if (elapsed >= 1.0)
         {
             double averageTime = _summedRenderTime / _framesCount;
-            Title = $"Average rendering time:  {averageTime} ms";
-            _lastElapsedTime += elapsed;
+            Title = $"Average rendering time: {averageTime} ms";
+            _lastElapsedRenderTime += elapsed;
         }
 #endif
+    }
+
+    private void InitFileLogger()
+    {
+        var currentDateTime = DateTime.Now.ToString().Replace(":", ".");
+
+        _logFile = File.Create($@"Logs\{currentDateTime}.txt");
+        _writer = new StreamWriter(_logFile);
+
+        _debugProcCallbackHandle = GCHandle.Alloc(_debugProcCallback);
+
+        GL.DebugMessageCallback(_debugProcCallback, IntPtr.Zero);
+        GL.Enable(EnableCap.DebugOutput);
+        GL.Enable(EnableCap.DebugOutputSynchronous);
+    }
+
+    private static void DebugCallBack(
+       DebugSource source,
+       DebugType type,
+       int id,
+       DebugSeverity severity,
+       int length,
+       IntPtr message,
+       IntPtr userParam)
+    {
+        string messageStr = Marshal.PtrToStringAnsi(message, length);
+
+        if (messageStr.Contains(USELESS_LOG))
+            return;
+
+        _writer.WriteLine($"{severity} {type} | {messageStr}");
     }
 
     #endregion
 
     private void Init()
     {
-
-
-#if !DEBUG
-        WindowState = WindowState.Fullscreen;
+#if DEBUG //TODO: this is temp
+        //  WindowState = WindowState.Fullscreen;
 #endif
-
-        GL.ClearColor(System.Drawing.Color.FromArgb(0, 0, 0, 0));
-
         ScreenSize = new Vector2i(1920, 1080);
+        GL.ClearColor(System.Drawing.Color.FromArgb(0, 100, 100, 100));
+
         FullToPixelatedRatio = (Vector2)ScreenSize / new Vector2(512);
 
-        CursorVisible = false;
-        CursorGrabbed = true;
+        CursorState = CursorState.Grabbed;
         VSync = VSyncMode.On;
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -143,26 +194,33 @@ class MyGameWindow : GameWindow
 
         AudioManager audioManager = new();
         SharedData sharedData = new(new GameData(new Camera(), this, audioManager, new Vector2(0, 98f), new NetworkLogger()),
-                                    new RenderData(Matrix4.CreateOrthographicOffCenter(0, ScreenSize.X, ScreenSize.Y, 0, -1, 1), new DebugDrawer(), new DrawUtils(this)),
+                                    new RenderData(new DebugDrawer(), new Graphics()),
                                     new PhysicsData(deltaTime, 1f / 8f, new PhysicsObjectsFactory(), b2World, 8, 3),
                                     new NetworkData("game"));
 
         this.sharedData = sharedData;
 
-        InitServices();
+        sharedData.gameData.gameSystems = _gameSystems = new EcsSystems(world, sharedData);
+        sharedData.renderData.renderSystems = _renderSystems = new EcsSystems(world, sharedData);
+        sharedData.physicsData.physicsSystems = _physicsSystems = new EcsSystems(world, sharedData);
+        sharedData.networkData.networkSystems = _networkSystems = new EcsSystems(world, sharedData);
+
+        var gameDataFields = typeof(GameData).GetFields(BindingFlags.Public | BindingFlags.Instance);
+        var renderDataFields = typeof(RenderData).GetFields(BindingFlags.Public | BindingFlags.Instance);
+        var physicsDataFields = typeof(PhysicsData).GetFields(BindingFlags.Public | BindingFlags.Instance);
+        var networkDataFields = typeof(NetworkData).GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+        PreInitServices(gameDataFields, renderDataFields, physicsDataFields, networkDataFields);
 
         LoadShaders(@"Content\Shaders");
-        LoadShaders(@"Content\Shaders\MaterialShaders");
+        LoadShaders(@"Content\Shaders\Materials");
         LoadTextures(@"Content\Textures");
         LoadTextures(@"Content\Textures\Tilesets");
         LoadSounds(@"Content\Sounds");
 
-        GL.UseProgram(0);
-
         Mouse.Init(this);
         Keyboard.Init(this);
 
-        _gameSystems = new EcsSystems(world, sharedData);
         _gameSystems
             //init and update stuff
             //levels and camera
@@ -172,9 +230,10 @@ class MyGameWindow : GameWindow
             .Add(new LevelsSystem())
             .Add(new CameraFollowCursorSystem())
             .Add(new CameraSystem())
-            //update things
-           // .Add(new DebugSystem())
-            //.Add(new DrawCollisionsSystem())
+            .Add(new DebugSystem())
+            //update thing
+            .Add(new PlayerSystem())
+            // .Add(new DrawCollisionsSystem())
             .Add(new SetPostProcessingProjectionSystem())
             .Add(new RemoveDebugEntitiesSystem())
             .Add(new SetGroupsStateSystem())
@@ -182,21 +241,19 @@ class MyGameWindow : GameWindow
             .Inject()
             .Init();
 
-        _renderSystems = new EcsSystems(world, sharedData);
         _renderSystems
             .Add(new RenderSpritesSystem())
-            //  .Add(new LightingSystem())
+            .Add(new RenderTextSystem())
+           //  .Add(new LightingSystem())
             .Add(new PostProcessingSystem())
             .Inject()
             .Init();
 
-        _physicsSystems = new EcsSystems(world, sharedData);
         _physicsSystems
             .Add(new UpdatePhysicsSystem())
             .Inject()
             .Init();
 
-        _networkSystems = new EcsSystems(world, sharedData);
         _networkSystems
             .AddGroup(typeof(PrintIPSystem).Name, false, null, this,
                 new PrintIPSystem())
@@ -208,18 +265,14 @@ class MyGameWindow : GameWindow
             .Inject()
             .Init();
 
-        sharedData.renderData.drawUtils.Init(_renderSystems);
+        PostInitServices(gameDataFields, renderDataFields, physicsDataFields, networkDataFields);
     }
 
     public void AddGroupSystems(string name, IEcsSystem[] systems) =>
         sharedData.gameData.groupSystems[name] = systems;
 
-    private void InitServices()
+    private void PreInitServices(FieldInfo[] gameDataFields, FieldInfo[] renderDataFields, FieldInfo[] physicsDataFields, FieldInfo[] networkDataFields)
     {
-        var gameDataFields = typeof(GameData).GetFields(BindingFlags.Public | BindingFlags.Instance);
-        var renderDataFields = typeof(RenderData).GetFields(BindingFlags.Public | BindingFlags.Instance);
-        var physicsDataFields = typeof(PhysicsData).GetFields(BindingFlags.Public | BindingFlags.Instance);
-
         var serviceType = typeof(Service);
 
         foreach (var field in gameDataFields)
@@ -228,7 +281,7 @@ class MyGameWindow : GameWindow
                 continue;
 
             var instance = (Service)field.GetValue(sharedData.gameData);
-            instance.Init(sharedData, world);
+            instance.PreInit(sharedData, world);
         }
 
         foreach (var field in renderDataFields)
@@ -237,7 +290,7 @@ class MyGameWindow : GameWindow
                 continue;
 
             var instance = (Service)field.GetValue(sharedData.renderData);
-            instance.Init(sharedData, world);
+            instance.PreInit(sharedData, world);
         }
 
         foreach (var field in physicsDataFields)
@@ -246,7 +299,58 @@ class MyGameWindow : GameWindow
                 continue;
 
             var instance = (Service)field.GetValue(sharedData.physicsData);
-            instance.Init(sharedData, world);
+            instance.PreInit(sharedData, world);
+        }
+
+        foreach (var field in networkDataFields)
+        {
+            if (!field.FieldType.IsAssignableTo(serviceType))
+                continue;
+
+            var instance = (Service)field.GetValue(sharedData.networkData);
+            instance.PreInit(sharedData, world);
+        }
+    }
+
+    //postInit exists to allow services to cache systems to call their methods (not too ecsy, but who cares ;v)
+    private void PostInitServices(FieldInfo[] gameDataFields, FieldInfo[] renderDataFields, FieldInfo[] physicsDataFields, FieldInfo[] networkDataFields)
+    {
+        var serviceType = typeof(Service);
+
+        foreach (var field in gameDataFields)
+        {
+            if (!field.FieldType.IsAssignableTo(serviceType))
+                continue;
+
+            var instance = (Service)field.GetValue(sharedData.gameData);
+            instance.PostInit();
+        }
+
+        foreach (var field in renderDataFields)
+        {
+            if (!field.FieldType.IsAssignableTo(serviceType))
+                continue;
+
+            var instance = (Service)field.GetValue(sharedData.renderData);
+            instance.PostInit();
+        }
+
+        foreach (var field in physicsDataFields)
+        {
+            if (!field.FieldType.IsAssignableTo(serviceType))
+                continue;
+
+            var instance = (Service)field.GetValue(sharedData.physicsData);
+            instance.PostInit();
+        }
+
+        foreach (var field in networkDataFields)
+        {
+            if (!field.FieldType.IsAssignableTo(serviceType))
+                continue;
+
+            var instance = (Service)field.GetValue(sharedData.networkData);
+            instance.PostInit();
         }
     }
 
@@ -255,7 +359,7 @@ class MyGameWindow : GameWindow
         DirectoryInfo directoryInfo = new(dirPath);
 
         foreach (var file in directoryInfo.GetFiles())
-            ResourceManager.LoadTexture(Path.GetFileNameWithoutExtension(file.FullName), file.FullName);
+            Content.LoadTexture(Path.GetFileNameWithoutExtension(file.FullName), file.FullName);
     }
 
     private void LoadSounds(string dirPath)
@@ -285,29 +389,49 @@ class MyGameWindow : GameWindow
 
             var name = dir.Name;
 
-            ResourceManager.ReloadShader(name, vertFile.FullName, fragFile.FullName, geomFile?.FullName);
+            Content.ReloadShader(name, vertFile.FullName, fragFile.FullName, geomFile?.FullName);
         }
+
+        GL.UseProgram(0);
     }
 
     private void LoadShaders(string dirPath)
     {
         DirectoryInfo directoryInfo = new(dirPath);
-        var directories = directoryInfo.GetDirectories();
 
+        foreach (var file in directoryInfo.GetFiles())
+        {
+            switch (file.Extension)
+            {
+                case ".frag":
+                    Content.LoadShaderSource(SourceType.Frag, file.FullName);
+                    break;
+                case ".vert":
+                    Content.LoadShaderSource(SourceType.Vert, file.FullName);
+                    break;
+                case ".geom":
+                    Content.LoadShaderSource(SourceType.Geom, file.FullName);
+                    break;
+            }
+        }
+
+        var directories = directoryInfo.GetDirectories();
         foreach (var dir in directories)
         {
             var files = dir.GetFiles().ToList();
 
-            var vertFile = files.Find(file => file.Name == "shader.vert");
-            var fragFile = files.Find(file => file.Name == "shader.frag");
-            var geomFile = files.Find(files => files.Name == "shader.geom");
+            var vertFile = files.Find(file => file.Extension == ".vert");
+            var fragFile = files.Find(file => file.Extension == ".frag");
+            var geomFile = files.Find(files => files.Extension == ".geom");
 
             if (vertFile == null || fragFile == null)
                 continue;
 
             var name = dir.Name;
 
-            ResourceManager.LoadShader(name, vertFile.FullName, fragFile.FullName, geomFile?.FullName);
+            Content.LoadShader(name, vertFile.FullName, fragFile.FullName, geomFile?.FullName);
         }
+
+        GL.UseProgram(0);
     }
 }

@@ -13,9 +13,11 @@ class InitLayersSystem : MySystem
     {
         base.Init(systems);
 
-        sharedData.renderData.drawUtils.AddLayer("default", new(MyGameWindow.ScreenSize, false, false, 0));
-        sharedData.renderData.drawUtils.AddLayer("background1", new(new Vector2i(512), true, false, -1));
-        sharedData.renderData.drawUtils.AddLayer("background2", new(new Vector2i(512), true, false, -2, 0.5f));
-        sharedData.renderData.drawUtils.AddLayer("rectangle", new(MyGameWindow.ScreenSize, false, false, 1));
+        sharedData.renderData.graphics.AddLayer("text", new(MyGameWindow.ScreenSize, false, 3, 0));
+        sharedData.renderData.graphics.AddLayer("UI", new(MyGameWindow.ScreenSize, false, 2, 0));
+        sharedData.renderData.graphics.AddLayer("rectangle", new(MyGameWindow.ScreenSize, false, 1));
+        sharedData.renderData.graphics.AddLayer("default", new(MyGameWindow.ScreenSize, false, 0));
+        sharedData.renderData.graphics.AddLayer("background1", new(new Vector2i(512), true, -1));
+        sharedData.renderData.graphics.AddLayer("background2", new(new Vector2i(512), true, -2, 0.5f));
     }
 }

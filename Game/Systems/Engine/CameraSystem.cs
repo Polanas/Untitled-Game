@@ -13,8 +13,6 @@ class CameraSystem : MySystem
 
     private Camera _camera;
 
-    private float angle;
-
     public override void Init(EcsSystems systems)
     {
         base.Init(systems);
@@ -30,21 +28,13 @@ class CameraSystem : MySystem
     {
         Layer layer;
 
-        if (Keyboard.Down(Keys.K))
-        {
-            angle += 0.1f;
-
-            _camera.position.X = 0 + 10 * MathF.Cos(angle);
-            _camera.position.Y = 0 + 10 * MathF.Sin(angle);
-        }
-
         for (int i = 0; i < sharedData.renderData.layersList.Count; i++)
         {
             layer = sharedData.renderData.layersList[i];
 
             if (layer.pixelated)
                 sharedData.renderData.cameraLayerProjections[layer] = Maths.CreateCameraMatrix(new Vector2(MathF.Floor(_camera.position.X * layer.cameraPosModifier),
-                                                                                                           MathF.Floor(_camera.position.Y * layer.cameraPosModifier)),
+                                                                                               MathF.Floor(_camera.position.Y * layer.cameraPosModifier)),
                                                                                                (Vector2)MyGameWindow.ScreenSize / MyGameWindow.FullToPixelatedRatio / _camera.zoom);
             else sharedData.renderData.cameraLayerProjections[layer] = Maths.CreateCameraMatrix(_camera.position * layer.cameraPosModifier, (Vector2)MyGameWindow.ScreenSize / _camera.zoom / 8);
         }

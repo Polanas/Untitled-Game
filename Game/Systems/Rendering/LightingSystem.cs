@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using System.Drawing;
 
 namespace Game;
@@ -52,8 +52,8 @@ class LightingSystem : RenderSystem
     {
         base.Init(systems);
 
-        shader = ResourceManager.GetShader("genShadows");
-        _finalShadowShader = ResourceManager.GetShader("light");
+        shader = Content.GetShader("genShadows");
+        _finalShadowShader = Content.GetShader("light");
 
         VAO = GL.GenVertexArray();
         EAO = GL.GenBuffer();

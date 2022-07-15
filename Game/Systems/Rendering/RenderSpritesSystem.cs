@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Game;
 
@@ -53,7 +53,6 @@ class DrawCallsPerTextureInfo
         infoList.Clear();
     }
 
-
     public void AddDrawCall(Texture texture, Layer layer, Vector2 position, Vector3 color, float alpha, Vector2 size, float angle, float depth, float[] texCoords)
     {
         Matrix4 projection = _sharedData.renderData.cameraLayerProjections[layer];
@@ -86,6 +85,7 @@ class DrawCallsPerTextureInfo
 
         var spriteColor = new List<float> { sprite.color.X / 255, sprite.color.Y / 255, sprite.color.Z / 255, sprite.alpha };
         Vector2 position = _pixelated ? new Vector2(MathF.Floor(sprite.position.X) + 0.1f, MathF.Floor(sprite.position.Y) + 0.1f) : sprite.position;
+        position += sprite.offset;
 
         Vector2 sizeMult = new Vector2(sprite.flippedHorizontally ? -1 : 1, sprite.flippedVertically ? -1 : 1);
         Matrix4 model = Maths.CreateTransformMatrix(position, sprite.size * sprite.scale * sizeMult, sprite.angle);
@@ -115,6 +115,7 @@ class DrawCallsPerTextureInfo
 
         var spriteColor = new List<float> { sprite.color.X / 255, sprite.color.Y / 255, sprite.color.Z / 255, sprite.alpha };
         Vector2 position = _pixelated ? (new Vector2(MathF.Floor(sprite.position.X) + 0.1f, MathF.Floor(sprite.position.Y) + 0.1f)) : sprite.position;
+        position += sprite.offset;
 
         Vector2 sizeMult = new Vector2(sprite.flippedHorizontally ? -1 : 1, sprite.flippedVertically ? -1 : 1);
         Matrix4 model = Maths.CreateTransformMatrix(position, sprite.size * sprite.scale * sizeMult, sprite.angle);
@@ -136,17 +137,6 @@ class DrawCallsPerTextureInfo
         info[texture].depth = sprite.depth;
         info[texture].isShadowCaster.Add(sprite.isShadowCaster ? 1 : 0);
     }
-
-    public void AddSprite(Sprite sprite)
-    {
-        if (!info.ContainsKey(sprite.Texture))
-        {
-            PreparedSpriteInfo preparedSpriteInfo = new(sprite.Texture);
-            info[sprite.Texture] = preparedSpriteInfo;
-
-            infoList.Add(preparedSpriteInfo);
-        }
-    }
 }
 
 class DrawCallsPerFrameInfo
@@ -158,7 +148,7 @@ class DrawCallsPerFrameInfo
 
     public readonly List<DrawCallsPerTextureInfo> drawCallsPerTextureInfosList = new();
 
-    public DrawCallsPerFrameInfo(SharedData sharedData) //TODO: remeber: this is TEMPORARY
+    public DrawCallsPerFrameInfo(SharedData sharedData)
     {
         foreach (var layer in sharedData.renderData.layersList)
         {
@@ -295,19 +285,22 @@ class RenderSpritesSystem : RenderSystem
                 GL.BindBuffer(BufferTarget.ArrayBuffer, _depthVBO);
                 GL.BufferData(BufferTarget.ArrayBuffer, depths.Length * sizeof(float), depths, BufferUsageHint.DynamicDraw);
 
-              //  if (spritesInfo.Pixelated)
-              //  {
-               //     GL.BindBuffer(BufferTarget.ArrayBuffer, _isShadowCasterVBO);
-               //     GL.BufferData(BufferTarget.ArrayBuffer, isShadowCaster.Length * sizeof(int), isShadowCaster, BufferUsageHint.DynamicDraw);
-              //  }
+                //  if (spritesInfo.Pixelated)
+                //  {
+                //     GL.BindBuffer(BufferTarget.ArrayBuffer, _isShadowCasterVBO);
+                //     GL.BufferData(BufferTarget.ArrayBuffer, isShadowCaster.Length * sizeof(int), isShadowCaster, BufferUsageHint.DynamicDraw);
+                //  }
 
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, EAO);
-                GL.DrawElementsInstanced(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (IntPtr)0, colors.Length / 3);
+                GL.DrawElementsInstanced(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (IntPtr)0, colors.Length / 4);
+
+                GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
             }
 
             if (spritesInfo.Pixelated)
                 GL.Viewport(new System.Drawing.Rectangle(0, 0, MyGameWindow.ScreenSize.X, MyGameWindow.ScreenSize.Y));
         }
+
     }
 
     public void DrawSprite(Sprite sprite)
@@ -335,16 +328,20 @@ class RenderSpritesSystem : RenderSystem
 
             var sprite = renderable.sprite;
 
-            sprite.UpdateFrame();
+            if (world.HasComponent<Tag>(entity) && world.GetComponent<Tag>(entity) == "player")
+            {
 
-            if (world.HasComponent<Transform>(entity))
+            }
+
+            if (transforms.Has(entity))
             {
                 ref var transform = ref transforms.Get(entity);
 
                 sprite.position = transform.position;
                 sprite.angle = transform.angle;
-                sprite.size = transform.size;
             }
+
+            sprite.UpdateFrame();
 
             if (sprite.material != null && sprite.material.isApplying)
                 _materialRenderer.Render(sprite);
@@ -406,8 +403,8 @@ class RenderSpritesSystem : RenderSystem
     {
         base.Init(systems);
 
-        shader = ResourceManager.GetShader("renderDefault");
-        _pixelatedShader = ResourceManager.GetShader("renderPixelated");
+        shader = Content.GetShader("renderDefault");
+        _pixelatedShader = Content.GetShader("renderPixelated");
 
         _perFrameInfo = new(sharedData);
         _drawablePool = world.GetPool<Drawable>();
@@ -420,7 +417,7 @@ class RenderSpritesSystem : RenderSystem
         _projection2VBO = GL.GenBuffer();
         _depthVBO = GL.GenBuffer();
         _FBO = GL.GenFramebuffer();
-      //  _isShadowCasterVBO = GL.GenBuffer();
+        //  _isShadowCasterVBO = GL.GenBuffer();
 
         GL.BindVertexArray(VAO);
 
@@ -464,10 +461,14 @@ class RenderSpritesSystem : RenderSystem
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, _FBO);
+        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
         GL.BindVertexArray(0);
 
         sharedData.renderData.shadowCastersTexture = Texture.LoadEmpty(new Vector2i(512), TextureUnit.Texture3);
-        _rectangleTexture = ResourceManager.GetTexture("rectangleTexture");
+        _rectangleTexture = Content.GetTexture("rectangleTexture");
 
         _materialRenderer = new();
     }

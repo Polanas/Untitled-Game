@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>ECSGame</RootNamespace>
+    <RootNamespace>Game</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -23,14 +23,20 @@
     <PackageReference Include="Box2D.NetStandard" Version="1.0.4" />
     <PackageReference Include="Lidgren.Network" Version="1.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="OpenTK" Version="4.7.1" />
+    <PackageReference Include="OpenTK" Version="4.7.4" />
     <PackageReference Include="StbImageSharp" Version="2.27.8" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Game\Systems\Gameplay\" />
+    <Folder Include="Content\Shaders\renderPixelatedNew\" />
     <Folder Include="LeoEcsLite\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SharpFont">
+      <HintPath>SharpFont.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -27,7 +27,7 @@ class InitNetworkState : MySystem
                 world.AddComponent(world.AddEntity(), new SetGroupSystemState("ConnectToServer", true));
             else
             {
-                sharedData.networkData.server = new(sharedData, 1337, "game");
+                sharedData.networkData.server = new(sharedData, sharedData.networkData.port, "game");
                 sharedData.networkData.isActive = true;
 
                 world.AddComponent(world.AddEntity(), new SetGroupSystemState(typeof(PrintIPSystem).Name, true));
@@ -38,6 +38,7 @@ class InitNetworkState : MySystem
     public override void Init(EcsSystems systems)
     {
         base.Init(systems);
+        sharedData.networkData.port = 10142;
 
         Console.Write("Are you a client or a server? (c/s)? ");
         _task = GetInputAsync();

@@ -25,6 +25,8 @@ class NetworkData
 
     public Server server;
 
+    public EcsSystems networkSystems;
+
     public NetworkData(string gameName)
     {
         this.gameName = gameName;

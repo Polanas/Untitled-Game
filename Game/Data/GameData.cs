@@ -11,11 +11,15 @@ class GameData
 
     public Vector2 inGameMousePosition;
 
+    public EcsSystems gameSystems;
+
     public readonly AudioManager audioManager;
 
     public readonly MyGameWindow game;
 
-    public readonly List<Level> levels = new();
+    public readonly List<Level> levelsList = new();
+
+    public readonly Dictionary<string, Level> levels = new();
 
     public readonly Vector2 gravity;
 

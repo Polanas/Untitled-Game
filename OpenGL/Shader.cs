@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Game;
 
@@ -164,11 +164,8 @@ class Shader
         texture.Use();
     }
 
-    public void SetVector2Array(string name, Vector2[] value, bool useShader = false)
+    public void SetVector2Array(string name, Vector2[] value)
     {
-        if (useShader)
-            Use();
-
         float[] data = new float[value.Length * 2];
 
         for (int i = 0; i < data.Length; i += 2)
@@ -180,121 +177,99 @@ class Shader
         GL.Uniform2(_uniformLocations[name], data.Length, data);
     }
 
-    public void SetVector2Array(string name, float[] value, bool useShader = false)
+    public void SetVector2Array(string name, float[] value)
     {
-        if (useShader)
-            Use();
+        if (!_uniformLocations.ContainsKey(name))
+            return;
 
         GL.Uniform2(_uniformLocations[name], value.Length, value);
     }
 
-    public void SetInt(string name, int value, bool useShader = false)
+    public void SetInt(string name, int value)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
-
-        if (useShader)
-            Use();
+            
         GL.Uniform1(_uniformLocations[name], value);
     }
 
-    public void SetBool(string name, bool value, bool useShader = false)
+    public void SetBool(string name, bool value)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
-
-        if (useShader)
-            Use();
+            
         GL.Uniform1(_uniformLocations[name], value ? 1 : 0);
     }
 
-    public void SetFloat(string name, float value, bool useShader = false)
+    public void SetFloat(string name, float value)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
-
-        if (useShader)
-            Use();
+            
         GL.Uniform1(_uniformLocations[name], value);
     }
 
-    public void SetInteger(string name, int value, bool useShader = false)
+    public void SetInteger(string name, int value)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
-
-        if (useShader)
-            Use();
+            
         GL.Uniform1(_uniformLocations[name], value);
     }
 
-    public void SetVector2(string name, Vector2 value, bool useShader = false)
+    public void SetVector2(string name, Vector2 value)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
 
-        if (useShader)
-            Use();
         GL.Uniform2(_uniformLocations[name], value);
     }
 
-    public void SetVector2(string name, float x, float y, bool useShader = false)
+    public void SetVector2(string name, float x, float y)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
 
-        if (useShader)
-            Use();
         GL.Uniform2(_uniformLocations[name], x, y);
     }
 
-    public void SetVector3(string name, Vector3 value, bool useShader = false)
+    public void SetVector3(string name, Vector3 value)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
 
-        if (useShader)
-            Use();
         GL.Uniform3(_uniformLocations[name], value);
     }
 
-    public void SetVector3(string name, float x, float y, float z, bool useShader = false)
+    public void SetVector3(string name, float x, float y, float z)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
-
-        if (useShader)
-            Use();
+            
         GL.Uniform3(_uniformLocations[name], x, y, z);
     }
 
-    public void SetVector4(string name, Vector4 value, bool useShader = false)
+    public void SetVector4(string name, Vector4 value)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
 
-        if (useShader)
-            Use();
         GL.Uniform4(_uniformLocations[name], value);
     }
 
-    public void SetVector4(string name, float x, float y, float z, float w, bool useShader = false)
+    public void SetVector4(string name, float x, float y, float z, float w)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
 
-        if (useShader)
-            Use();
         GL.Uniform4(_uniformLocations[name], x, y, z, w);
     }
 
-    public void SetMatrix4(string name, Matrix4 value, bool useShader = false)
+    public void SetMatrix4(string name, Matrix4 value)
     {
         if (!_uniformLocations.ContainsKey(name))
             return;
-
-        if (useShader)
-            Use();
+            
         GL.UniformMatrix4(_uniformLocations[name], true, ref value);
     }
 }

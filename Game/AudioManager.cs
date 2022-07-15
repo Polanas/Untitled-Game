@@ -64,7 +64,7 @@ class AudioManager
         int channels, bits, rate;
 
         using (FileStream stream = new(path, FileMode.Open))
-            soundData = ResourceManager.LoadWave(stream, out channels, out bits, out rate);
+            soundData = Content.LoadWave(stream, out channels, out bits, out rate);
 
         var name = Path.GetFileNameWithoutExtension(path);
         _sounds.Add(name, new Sound(AL.GenBuffer(), channels, bits, rate, soundData, AL.GenSource()));

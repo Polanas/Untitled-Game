@@ -5,14 +5,26 @@ using System.Text;
 using System.Threading.Tasks;
 using StbImageSharp;
 
+public enum SourceType
+{
+    Frag,
+    Vert,
+    Geom,
+}
+
 namespace Game
 {
-    static class ResourceManager
+    static class Content
     {
         private static Dictionary<string, Texture> _textures = new();
 
         private static Dictionary<string, Shader> _shaders = new();
 
+        private static Dictionary<string, string> _fragShaderSources = new();
+
+        private static Dictionary<string, string> _vertShaderSources = new();
+
+        private static Dictionary<string, string> _geomShaderSources = new();
 
         public static Shader ReloadShader(string name, string vertPath, string fragPath, string geometryPath = null)
         {
@@ -23,8 +35,40 @@ namespace Game
             if (geometryPath != null)
                 geometrySource = File.ReadAllText(geometryPath);
 
-            _shaders[name] = Shader.Reload(_shaders[name], vertSource, fragSource, geometrySource);
-            return _shaders[name];
+            Shader shader = Shader.Reload(_shaders[name], vertSource, fragSource, geometrySource);
+            _shaders[name] = shader;
+
+            return shader;
+        }
+
+        public static void LoadShaderSource(SourceType type, string path)
+        {
+            string source = File.ReadAllText(path);
+            string name = Path.GetFileNameWithoutExtension(path);
+
+            switch (type)
+            {
+                case SourceType.Vert:
+                    _vertShaderSources[name] = source;
+                    break;
+                case SourceType.Frag:
+                    _fragShaderSources[name] = source;
+                    break;
+                case SourceType.Geom:
+                    _geomShaderSources[name] = source;
+                    break;
+            }
+        }
+
+        public static Shader RequestShader(string name, string localVertPath, string localFragPath, string localGeometryPath = null)
+        {
+            if (_shaders.ContainsKey(name))
+                return _shaders[name];
+
+            Shader shader = LoadShader(name, @"Content\Shaders\" + localVertPath, @"Content\Shaders\" + localFragPath, localGeometryPath == null ? null : @"Content\Shaders\" + localGeometryPath);
+            _shaders[name] = shader;
+
+            return shader;
         }
 
         public static Shader LoadShader(string name, string vertPath, string fragPath, string geometryPath = null)
@@ -36,8 +80,10 @@ namespace Game
             if (geometryPath != null)
                 geometrySource = File.ReadAllText(geometryPath);
 
-            _shaders[name] = Shader.Load(vertSource, fragSource, name, geometrySource);
-            return _shaders[name];
+            Shader shader = Shader.Load(vertSource, fragSource, name, geometrySource);
+            _shaders[name] = shader;
+
+            return shader;
         }
 
         public static Texture LoadTexture(string name, string path)
@@ -47,7 +93,7 @@ namespace Game
 #if DEBUG
             if (!File.Exists(path))
                 throw new ArgumentException(@$"Texture with path ""{path}"" doesn't exsist!");
-            
+
 
             using (var stream = File.OpenRead(path))
                 try
@@ -105,11 +151,19 @@ namespace Game
 
         public static Shader GetShader(string name) => _shaders[name];
 
+        public static string GetShaderSource(SourceType type, string fileName) =>
+            type switch
+            {
+                SourceType.Frag => _fragShaderSources[fileName],
+                SourceType.Vert => _vertShaderSources[fileName],
+                SourceType.Geom => _geomShaderSources[fileName],
+            };
+
+
         public static Texture GetTexture(string name)
         {
             if (!_textures.ContainsKey(name))
                 return _textures["unknownTexture"];
-
 
             return _textures[name];
         }

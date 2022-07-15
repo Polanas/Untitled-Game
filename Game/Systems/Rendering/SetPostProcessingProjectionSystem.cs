@@ -24,7 +24,7 @@ class SetPostProcessingProjectionSystem : MySystem
     public override void Run(EcsSystems systems)
     {
         Layer layer;
-        Matrix4 model = default(Matrix4);
+        Matrix4 model;
 
         for (int i = 0; i < sharedData.renderData.layersList.Count; i++)
         {

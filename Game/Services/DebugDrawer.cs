@@ -14,9 +14,9 @@ class DebugDrawer : Service
 
     private EcsPool<DrawableLine> _linePool;
 
-    public override void Init(SharedData sharedData, EcsWorld world)
+    public override void PreInit(SharedData sharedData, EcsWorld world)
     {
-        base.Init(sharedData, world);
+        base.PreInit(sharedData, world);
 
         _drawablePool = world.GetPool<Drawable>();
         _rectanglePool = world.GetPool<DrawableRectangle>();

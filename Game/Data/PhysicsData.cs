@@ -10,6 +10,8 @@ namespace Game;
 class PhysicsData
 {
 
+    public EcsSystems physicsSystems;
+
     public readonly float deltaTime;
 
     public readonly float PTM;
@@ -30,5 +32,6 @@ class PhysicsData
         this.b2World = b2World;
         this.velocityIterations = velocityIterations;
         this.positionIterations = positionIterations;
+        this.physicsSystems = physicsSystems;
     }
 }

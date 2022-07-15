@@ -6,9 +6,11 @@ class Service
 
     protected EcsWorld world;
 
-    public virtual void Init(SharedData sharedData, EcsWorld world)
+    public virtual void PreInit(SharedData sharedData, EcsWorld world)
     {
         this.sharedData = sharedData;
         this.world = world;
     }
+
+    public virtual void PostInit() { }
 }

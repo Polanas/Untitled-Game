@@ -16,6 +16,7 @@ class Client
     public Client(MyGameWindow game, int port, string host, string serverName)
     {
         NetPeerConfiguration congig = new(serverName);
+        congig.EnableUPnP = true;
       //  congig.AutoFlushSendQueue = false;
 
         _client = new NetClient(congig);
@@ -36,6 +37,9 @@ class Client
 
             switch (message.MessageType)
             {
+                case NetIncomingMessageType.StatusChanged:
+                    _logger.Log("Status was changed!", LogType.Info, SenderType.Client);
+                    break;
                 case NetIncomingMessageType.Data:
                     byte packetType = message.ReadByte();
 

@@ -26,11 +26,17 @@ class Material
         this.shader = shader;
         this.sprite = sprite;
         name = shader.name;
-       texture = Texture.LoadEmpty(sprite.TexWidth, sprite.TexHeight);
+        texture = Texture.LoadEmpty(sprite.TexWidth, sprite.TexHeight);
     }
 
-    public void Dispose()
+    public Material(Sprite sprite, string name, string localFragPath)
     {
-        GL.DeleteTexture(texture.handle);
+        shader = Content.RequestShader(name, @"Materials\materials.vert", localFragPath);
+        this.sprite = sprite;
+        this.name = name;
+        texture = Texture.LoadEmpty(sprite.TexWidth, sprite.TexHeight);
     }
+
+    public void Dispose() =>
+        GL.DeleteTexture(texture.handle);
 }

@@ -95,7 +95,7 @@ class Sprite
 
     public Sprite(string name, Vector2i? frameSize = null, int depth = 0, Layer layer = null)
     {
-        _texture = ResourceManager.GetTexture(name);
+        _texture = Content.GetTexture(name);
 
         if (frameSize != null)
         {

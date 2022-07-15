@@ -22,9 +22,9 @@ class PhysicsObjectsFactory : Service
 
     private float _PTM;
 
-    public override void Init(SharedData sharedData, EcsWorld world)
+    public override void PreInit(SharedData sharedData, EcsWorld world)
     {
-        base.Init(sharedData, world);
+        base.PreInit(sharedData, world);
 
         _transforms = world.GetPool<Transform>();
         _staticBodies = world.GetPool<StaticBody>();

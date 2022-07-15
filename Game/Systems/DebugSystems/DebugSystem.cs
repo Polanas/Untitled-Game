@@ -6,6 +6,7 @@ using Box2DX.Common;
 using Box2DX.Collision;
 using Box2DX.Dynamics;
 using Coroutines;
+using SharpFont;
 
 namespace Game;
 
@@ -20,7 +21,11 @@ unsafe class DebugSystem : MySystem
 
     private Sprite _gggame;
 
-    private Sprite _fridge;
+    private Sprite _test;
+
+    private ColorMaterial _colorMaterial;
+
+    private float mixAmount;
 
     public override void Run(EcsSystems systems)
     {
@@ -30,17 +35,22 @@ unsafe class DebugSystem : MySystem
 
         // sharedData.renderData.debugDrawer.DrawRect(Mouse.ScreenPosition / 8 - new Vector2(1920/16, 1080/16), new Vector2(20), new Vector3(125, 75, 200));
 
-        // _machine.Update();
-         
-        if (sharedData.networkData.client != null)
-            sharedData.networkData.client.SendPosition(new Vector2(-100, 100));
+       //  _machine.Update();
 
-        if (Keyboard.Pressed(Keys.P))
-            (_fridge.material as TestMaterial).isApplying = !(_fridge.material as TestMaterial).isApplying;
+            sharedData.networkData.client?.SendPosition(new Vector2(-100, 100));
 
-    //  (_fridge.material as TestMaterial).time += 1f / 60f;
+        //if (Keyboard.Pressed(Keys.P))
+        //    (_test.material as TestMaterial).isApplying = !(_test.material as TestMaterial).isApplying;
 
-       sharedData.renderData.drawUtils.DrawSprite(_fridge);
+        //  (_fridge.material as TestMaterial).time += 1f / 60f;
+
+        sharedData.renderData.graphics.DrawSprite(_test);
+
+        mixAmount += .1f;
+
+        _colorMaterial.mixAmount = MathF.Sin(mixAmount);
+
+        sharedData.renderData.graphics.DrawText("Fuck you.", new Vector2(0), 1f, new Vector3i(255));
     }
 
     private int Walk()
@@ -93,21 +103,24 @@ unsafe class DebugSystem : MySystem
         renderable.sprite.position = new Vector2(150, 70);
         _sprite = renderable.sprite;
 
-      //  entity = world.AddEntity();
-      //  renderable = ref world.AddComponent<Renderable>(entity);
+        //  entity = world.AddEntity();
+        //  renderable = ref world.AddComponent<Renderable>(entity);
 
-        Sprite fridge = new Sprite("fridge", new Vector2i(32), 10, sharedData.renderData.layers["background1"]);
-        fridge.AddAnimation("idle", 0.8f, true, 0, fridge.FramesAmount - 1);
-       fridge.SetAnimation("idle");
-//
-        _fridge = fridge;
-        _fridge.material = new TestMaterial(_fridge);
+        Sprite test = new Sprite("fridge", new Vector2i(32), 10);
+        test.layer = sharedData.renderData.layers["UI"];
+        test.AddAnimation("idle", 0.4f, true, 0, test.FramesAmount - 1);
+        test.SetAnimation("idle");
+        //
+        _test = test;
+        _test.material = _colorMaterial = new ColorMaterial(_test);
+        _colorMaterial.color = new Vector3(255);
+        _colorMaterial.mixAmount = .5f;
 
-     //   renderable.sprite = _fridge;
+        //   renderable.sprite = _fridge;
 
-       // _materialRenderer.Render(_fridge);
+        // _materialRenderer.Render(_fridge);
 
-       // _fridge.SetTexture(_fridge.material.texture);
+        // _fridge.SetTexture(_fridge.material.texture);
 
         //_fridge.material.texture.SaveRGBA(@"C:\Users\ivanh\Downloads\test.png");
 
@@ -125,8 +138,5 @@ unsafe class DebugSystem : MySystem
         //_machine.SetCallBacks(2, Idle);
 
         //_machine.ForceState(2);
-
-        // _server = new(sharedData);
-        // _server.Start();
     }
 }

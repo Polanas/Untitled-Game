@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using System.Drawing;
 using System.Drawing.Imaging;
 using StbImageSharp;
@@ -36,7 +36,7 @@ class Texture
                 size.X,
                 size.Y,
                 0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Rgba,
+                OpenTK.Graphics.OpenGL4.PixelFormat.Rgba,
                 pixelType,
                 (IntPtr)0
             );
@@ -67,7 +67,7 @@ class Texture
                 width,
                 height,
                 0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Rgba,
+                OpenTK.Graphics.OpenGL4.PixelFormat.Rgba,
                 pixelType,
                 (IntPtr)0
             );
@@ -98,7 +98,7 @@ class Texture
             image.Width,
             image.Height,
             0,
-            OpenTK.Graphics.OpenGL.PixelFormat.Rgba,
+            OpenTK.Graphics.OpenGL4.PixelFormat.Rgba,
             PixelType.UnsignedByte,
             image.Data
             );
@@ -123,7 +123,7 @@ class Texture
     public void SaveRGB(string path)
     {
         byte[] data = new byte[Height * Width * 3];
-        GL.GetTextureImage(this, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.UnsignedByte, Width * Height * 3, data);
+        GL.GetTextureImage(this, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Rgb, PixelType.UnsignedByte, Width * Height * 3, data);
         Bitmap bitmap;
 
         using (LockedBitmap lockedBitmap = new LockedBitmap(Width, Height))
@@ -152,7 +152,7 @@ class Texture
     public void SaveRGBA(string path)
     {
         byte[] data = new byte[Height * Width * 4];
-        GL.GetTextureImage<byte>(handle, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, Width * Height * 4, data);
+        GL.GetTextureImage<byte>(handle, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Rgba, PixelType.UnsignedByte, Width * Height * 4, data);
         Bitmap bitmap;
 
         using (LockedBitmap lockedBitmap = new LockedBitmap(Width, Height))

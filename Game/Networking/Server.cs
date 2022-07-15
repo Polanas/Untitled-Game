@@ -20,9 +20,12 @@ class Server
         NetPeerConfiguration config = new("game");
         config.MaximumConnections = 8;
         config.Port = port;
+        config.EnableUPnP = true;
 
         _server = new(config);
         _server.Start();
+        bool forwardPortSuccess = _server.UPnP.ForwardPort(port, "description");
+        Console.WriteLine("Forward port: {0}", forwardPortSuccess);
 
         _logger = sharedData.gameData.logger;
         _logger.Log("Listening for clients...", LogType.Info, SenderType.Sever);
