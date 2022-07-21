@@ -6,37 +6,52 @@ using System.Threading.Tasks;
 
 namespace Game;
 
-class StateMachine //Based on Celeste's state machine (thank you very much :>)
+/// <summary>
+/// Based on Celeste's state machine (thank you very much :>)
+/// </summary>
+/// 
+class StateMachine<T> 
 {
-    private int _state;
+    private T _state;
 
-    private Action[] _begins;
+    private int _maxStates;
 
-    private Action[] _ends;
+    private Dictionary<T, Action> _begins;
 
-    private Func<int>[] _updates;
+    private Dictionary<T, Action> _ends;
 
-    public int PreviousState { get; private set; }
+    private Dictionary<T, Func<T>> _updates;
+
+    public T PreviousState { get; private set; }
+
+    public T State => _state;
 
     public StateMachine(int maxStates)
     {
-        _begins = new Action[maxStates];
-        _ends = new Action[maxStates];
-        _updates = new Func<int>[maxStates];
+        _maxStates = maxStates;
 
-        PreviousState = -1;
+        _begins = new();
+        _ends = new();
+        _updates = new();
     }
 
-    public void SetCallBacks(int state, Func<int> onUpdate, Action begin = null, Action end = null)
+    public void SetCallBacks(T state, Func<T> onUpdate, Action begin = null, Action end = null)
     {
+        if (_updates.Count == _maxStates)
+#if DEBUG
+            throw new ArgumentException("Too much states created!");
+#else
+        return;
+#endif
+
         _begins[state] = begin;
         _ends[state] = end;
         _updates[state] = onUpdate;
     }
 
-    public void ForceState(int state)
+    public void ForceState(T state)
     {
-        if (_state == state)
+        if (EqualityComparer<T>.Default.Equals(_state, state))
             return;
 
         PreviousState = _state;
@@ -52,7 +67,7 @@ class StateMachine //Based on Celeste's state machine (thank you very much :>)
         if (_updates[_state] != null)
             ForceState(_updates[_state].Invoke());
 
-        if (PreviousState != _state)
+        if (!EqualityComparer<T>.Default.Equals(PreviousState, _state))
             _updates[_state].Invoke();
     }
 }

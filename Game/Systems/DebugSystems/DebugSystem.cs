@@ -17,7 +17,7 @@ unsafe class DebugSystem : MySystem
 
     private Body _box;
 
-    private StateMachine _machine;
+    private StateMachine<int> _machine;
 
     private Sprite _gggame;
 
@@ -35,9 +35,9 @@ unsafe class DebugSystem : MySystem
 
         // sharedData.renderData.debugDrawer.DrawRect(Mouse.ScreenPosition / 8 - new Vector2(1920/16, 1080/16), new Vector2(20), new Vector3(125, 75, 200));
 
-       //  _machine.Update();
+        _machine.Update();
 
-            sharedData.networkData.client?.SendPosition(new Vector2(-100, 100));
+        sharedData.networkData.client?.SendPosition(new Vector2(-100, 100));
 
         //if (Keyboard.Pressed(Keys.P))
         //    (_test.material as TestMaterial).isApplying = !(_test.material as TestMaterial).isApplying;
@@ -126,17 +126,17 @@ unsafe class DebugSystem : MySystem
 
         //  sharedData.gameData.camera.position -= new Vector2(200);
 
-        //int e = sharedData.physicsData.physicsFactory.AddDynamicBody(new Transform(new Vector2(150, 0), 0, new Vector2(12,19)));
+        int e = sharedData.physicsData.physicsFactory.AddDynamicBody(new Transform(new Vector2(150, 0), 0, new Vector2(12, 19)));
 
-        //ref var body = ref world.GetComponent<DynamicBody>(e);
-        //_box = body.body;
+        ref var body = ref world.GetComponent<DynamicBody>(e);
+        _box = body.body;
 
-        //_machine = new(3);
+        _machine = new(3);
 
-        //_machine.SetCallBacks(0, Walk);
-        //_machine.SetCallBacks(1, StopBox);
-        //_machine.SetCallBacks(2, Idle);
+        _machine.SetCallBacks(0, Walk);
+        _machine.SetCallBacks(1, StopBox);
+        _machine.SetCallBacks(2, Idle);
 
-        //_machine.ForceState(2);
+        _machine.ForceState(2);
     }
 }

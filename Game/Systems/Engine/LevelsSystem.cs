@@ -40,7 +40,7 @@ class LevelsSystem : MySystem
                         sprite.Frame = (int)tile.T;
 
                         renderable.sprite = sprite;
-                        sprite.layer = sharedData.renderData.layers["background1"];
+                        sprite.layer = Layer.Front;
                         sprite.position = new Vector2(tile.Px[0], tile.Px[1]);
                         sprite.depth = 5;
                         sprite.flippedHorizontally = tile.F == 1 || tile.F == 3;
@@ -53,6 +53,7 @@ class LevelsSystem : MySystem
                         ref var rend = ref _renderables.Value.Add(entity);
 
                         tr = new Transform(sprite.position, 0, sprite.size);
+
                         rend = renderable;
 
                         sharedData.physicsData.physicsFactory.AddSaticBody(tr);
@@ -67,7 +68,7 @@ class LevelsSystem : MySystem
 
                         renderable.sprite = sprite;
                         sprite.position = new Vector2(ldtkEntity.Px[0] + sprite.TexWidth / 2 - 4, ldtkEntity.Px[1] + sprite.TexHeight / 2 - 4);
-                        sprite.layer = sharedData.renderData.layers["background1"];
+                        sprite.layer = sharedData.renderData.layers["front"];
                         sprite.depth = 6;
                         sprite.isShadowCaster = true;
 

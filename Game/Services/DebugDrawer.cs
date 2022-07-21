@@ -14,6 +14,8 @@ class DebugDrawer : Service
 
     private EcsPool<DrawableLine> _linePool;
 
+    private RenderSpritesSystem _renderSpritesSystem;
+
     public override void PreInit(SharedData sharedData, EcsWorld world)
     {
         base.PreInit(sharedData, world);
@@ -24,42 +26,21 @@ class DebugDrawer : Service
 
     }
 
-    public void DrawRect(Vector2 position, Vector2 size, Vector3 color, float angle = 0)
+    public override void PostInit()
     {
-        var e = world.AddEntity();
-        ref var rect = ref _rectanglePool.Add(e);
-        rect = new(position, size, color, angle);
-        _drawablePool.Add(e);
+        _renderSpritesSystem = sharedData.renderData.renderSystems.Find<RenderSpritesSystem>();
     }
 
-    public void DrawRect(DrawableRectangle rect)
-    {
-        var e = world.AddEntity();
-        ref var rect1 = ref _rectanglePool.Add(e);
-        rect1 = rect;
-        _drawablePool.Add(e);
-    }
+    public void DrawRect(Vector2 position, Vector2 size, Vector3 color, float angle = 0) =>
+        _renderSpritesSystem.DrawRect(position, color, size, angle);
 
-    public void DrawLine(Vector2 startPoint, Vector2 endPoint, Vector3 color, float thickness = 1)
-    {
-        var e = world.AddEntity();
-        ref var line = ref _linePool.Add(e);
-        line = new(startPoint, endPoint, color, thickness);
-        _drawablePool.Add(e);
-    }
-
-    public void DrawLine(DrawableLine line)
-    {
-        var e = world.AddEntity();
-        ref var line1 = ref _linePool.Add(e);
-        line1 = line; 
-        _drawablePool.Add(e);
-    }
+    public void DrawLine(Vector2 startPoint, Vector2 endPoint, Vector3 color, float thickness = 1) =>
+        _renderSpritesSystem.DrawLine(startPoint, endPoint, color, thickness);
 
     public void DrawTriangle(Vector2 a, Vector2 b, Vector2 c, Vector3 color, float thickness = 1)
     {
-        DrawLine(new DrawableLine(a, b, color, thickness));
-        DrawLine(new DrawableLine(b, c, color, thickness));
-        DrawLine(new DrawableLine(a, c, color, thickness));
+        DrawLine(a, b, color, thickness);
+        DrawLine(b, c, color, thickness);
+        DrawLine(a, c, color, thickness);
     }
 }

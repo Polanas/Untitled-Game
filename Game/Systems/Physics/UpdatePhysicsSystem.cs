@@ -14,56 +14,44 @@ class UpdatePhysicsSystem : MySystem
 
     private PhysicsData _physicsData;
 
-    private EcsPoolInject<StaticBody> _staticBodies;
+    private EcsPoolInject<StaticBody> _staticBodies = default;
 
-    private EcsPoolInject<DynamicBody> _dynamicBodies;
+    private EcsPoolInject<DynamicBody> _dynamicBodies = default;
 
-    private EcsPoolInject<Transform> _transforms;
+    private EcsPoolInject<Transform> _transforms = default;
+
+    private EcsFilterInject<Inc<StaticBody>> _staticBodiesFilter = default;
+
+    private EcsFilterInject<Inc<DynamicBody>> _dynamicBodiesFilter = default;
 
     public override void Run(EcsSystems systems)
     {
-        Vec2 vec2;
+        Vec2 box2DPos;
+        Vector2 pixelPos;
 
-        foreach (var e in world.Filter<StaticBody>().End())
+        _physicsData.b2World.Step(_physicsData.deltaTime, _physicsData.velocityIterations, _physicsData.positionIterations);
+
+        foreach (var e in _staticBodiesFilter.Value)
         {
             ref var staticBody = ref _staticBodies.Value.Get(e);
             ref var transform = ref _transforms.Value.Get(e);
 
-            vec2.X = transform.position.X * _physicsData.PTM;
-            vec2.Y = transform.position.Y * _physicsData.PTM;
-            staticBody.body.SetPosition(vec2);
+            box2DPos = staticBody.body.GetPosition();
+            transform.position.X = box2DPos.X / _physicsData.PTM;
+            transform.position.Y = box2DPos.Y / _physicsData.PTM;
         }
 
-        foreach (var e in world.Filter<DynamicBody>().End())
+        foreach (var e in _dynamicBodiesFilter.Value)
         {
             ref var dynamicBody = ref _dynamicBodies.Value.Get(e);
             ref var transform = ref _transforms.Value.Get(e);
 
-            vec2.X = transform.position.X * _physicsData.PTM;
-            vec2.Y = transform.position.Y * _physicsData.PTM;
-            dynamicBody.body.SetPosition(vec2);
-        }
+            box2DPos = dynamicBody.body.GetPosition();
+            pixelPos.X = box2DPos.X / _physicsData.PTM;
+            pixelPos.Y = box2DPos.Y / _physicsData.PTM;
 
-        _physicsData.b2World.Step(_physicsData.deltaTime, _physicsData.velocityIterations, _physicsData.positionIterations);
-
-        foreach (var e in world.Filter<StaticBody>().End())
-        {
-            ref var staticBody = ref _staticBodies.Value.Get(e);
-            ref var transform = ref _transforms.Value.Get(e);
-
-            vec2 = staticBody.body.GetPosition();
-            transform.position.X = vec2.X / _physicsData.PTM;
-            transform.position.Y = vec2.Y / _physicsData.PTM;
-        }
-
-        foreach (var e in world.Filter<DynamicBody>().End())
-        {
-            ref var staticBody = ref _dynamicBodies.Value.Get(e);
-            ref var transform = ref _transforms.Value.Get(e);
-
-            vec2 = staticBody.body.GetPosition();
-            transform.position.X = vec2.X / _physicsData.PTM;
-            transform.position.Y = vec2.Y / _physicsData.PTM;
+            transform.position.X = box2DPos.X / _physicsData.PTM;
+            transform.position.Y = box2DPos.Y / _physicsData.PTM;
         }
     }
 

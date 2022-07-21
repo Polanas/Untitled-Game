@@ -20,10 +20,6 @@ namespace Leopotam.EcsLite.Di {
                     // skip statics.
                     if (f.IsStatic) { continue; }
                     // EcsWorldInject, EcsFilterInject, EcsPoolInject, EcsSharedInject.
-                    if (InjectBuiltIns (f, system, systems)) { continue; }
-                    // EcsDataInject.
-                    if (InjectCustoms (f, system, injects)) { continue; }
-
                     if (system is EcsGroupSystem && f.FieldType == typeof(IEcsSystem[]))
                     {
                         var nestedSystems = (IEcsSystem[])f.GetValue(system);
@@ -41,6 +37,11 @@ namespace Leopotam.EcsLite.Di {
                             }
                         }
                     }
+
+                    if (InjectBuiltIns (f, system, systems)) { continue; }
+                    // EcsDataInject.
+                    if (InjectCustoms (f, system, injects)) { continue; }
+
                 }
             }
 

@@ -1,4 +1,4 @@
-﻿#define ENABLE_LOGGING
+﻿//#define ENABLE_LOGGING
 #region stuff
 
 using Box2DX.Collision;
@@ -89,8 +89,8 @@ class MyGameWindow : GameWindow
     protected void OnUpdate(FrameEventArgs e)
     {
         _networkSystems.Run();
-        _gameSystems.Run();
         _physicsSystems.Run();
+        _gameSystems.Run();
 
         if (Keyboard.Pressed(Keys.R))
             ReloadShaders(@"Content\Shaders");
@@ -101,11 +101,6 @@ class MyGameWindow : GameWindow
 
     protected void OnRender(FrameEventArgs args)
     {
-
-#if RELEASE
-        if (!IsFocused)
-            return;
-#endif
 
 #if DEBUG
         double lastTime = GLFW.GetTime();
@@ -176,7 +171,7 @@ class MyGameWindow : GameWindow
 
         FullToPixelatedRatio = (Vector2)ScreenSize / new Vector2(512);
 
-        CursorState = CursorState.Grabbed;
+        CursorState = CursorState.Hidden;
         VSync = VSyncMode.On;
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -192,7 +187,7 @@ class MyGameWindow : GameWindow
         aabb.UpperBound.Set(10000);
         World b2World = new(aabb, new Vec2(0, 98), true);
 
-        AudioManager audioManager = new();
+        SFX audioManager = new();
         SharedData sharedData = new(new GameData(new Camera(), this, audioManager, new Vector2(0, 98f), new NetworkLogger()),
                                     new RenderData(new DebugDrawer(), new Graphics()),
                                     new PhysicsData(deltaTime, 1f / 8f, new PhysicsObjectsFactory(), b2World, 8, 3),
@@ -222,18 +217,21 @@ class MyGameWindow : GameWindow
         Keyboard.Init(this);
 
         _gameSystems
-            //init and update stuff
-            //levels and camera
-            //.Add(new FileLoggerSystem())
             .Add(new InitLayersSystem())
-            //  .Add(new GenBitmapFromPiSystem())
+
+            .Add(new CursorSystem())
             .Add(new LevelsSystem())
-            .Add(new CameraFollowCursorSystem())
-            .Add(new CameraSystem())
-           // .Add(new DebugSystem())
-            //update thing
+             //.Add(new CoroutinesTest())
             .Add(new PlayerSystem())
+            .Add(new InitSwordSystem())
+            .Add(new CameraFollowPlayerSystem())
+            .Add(new CameraSystem())
+            .Add(new SetMouseIngamePosSystem())
+
+            .Add(new ArmsSystem())
+            .Add(new UpdateSwordSystem())
             // .Add(new DrawCollisionsSystem())
+            //.Add(new DebugSystem())
             .Add(new SetPostProcessingProjectionSystem())
             .Add(new RemoveDebugEntitiesSystem())
             .Add(new SetGroupsStateSystem())
@@ -241,16 +239,16 @@ class MyGameWindow : GameWindow
             .Inject()
             .Init();
 
-        _renderSystems
-            .Add(new RenderSpritesSystem())
-            .Add(new RenderTextSystem())
-           //  .Add(new LightingSystem())
-            .Add(new PostProcessingSystem())
+        _physicsSystems
+            .Add(new UpdatePhysicsSystem())
             .Inject()
             .Init();
 
-        _physicsSystems
-            .Add(new UpdatePhysicsSystem())
+        _renderSystems
+            .Add(new RenderSpritesSystem())
+            .Add(new RenderTextSystem())
+            .Add(new LightingSystem())
+            .Add(new PostProcessingSystem())
             .Inject()
             .Init();
 
@@ -266,6 +264,7 @@ class MyGameWindow : GameWindow
             .Init();
 
         PostInitServices(gameDataFields, renderDataFields, physicsDataFields, networkDataFields);
+        Utils.Init(sharedData.gameData.camera);
     }
 
     public void AddGroupSystems(string name, IEcsSystem[] systems) =>
@@ -367,30 +366,16 @@ class MyGameWindow : GameWindow
         DirectoryInfo directoryInfo = new(dirPath);
 
         foreach (var file in directoryInfo.GetFiles())
-            sharedData.gameData.audioManager.Add(file.FullName);
+            sharedData.gameData.SFX.Add(file.FullName);
 
     }
 
     private void ReloadShaders(string dirPath)
     {
-        DirectoryInfo directoryInfo = new(dirPath);
-        var directories = directoryInfo.GetDirectories();
+        var keys = Content.ShaderInfos.Keys.ToList();
 
-        foreach (var dir in directories)
-        {
-            var files = dir.GetFiles().ToList();
-
-            var vertFile = files.Find(file => file.Name == "shader.vert");
-            var fragFile = files.Find(file => file.Name == "shader.frag");
-            var geomFile = files.Find(files => files.Name == "shader.geom");
-
-            if (vertFile == null || fragFile == null)
-                continue;
-
-            var name = dir.Name;
-
-            Content.ReloadShader(name, vertFile.FullName, fragFile.FullName, geomFile?.FullName);
-        }
+        foreach (var key in keys)
+            Content.ReloadShader(Content.ShaderInfos[key]);
 
         GL.UseProgram(0);
     }

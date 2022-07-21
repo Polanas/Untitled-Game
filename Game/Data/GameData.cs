@@ -13,7 +13,7 @@ class GameData
 
     public EcsSystems gameSystems;
 
-    public readonly AudioManager audioManager;
+    public readonly SFX SFX;
 
     public readonly MyGameWindow game;
 
@@ -29,10 +29,10 @@ class GameData
 
     public readonly Dictionary<string, IEcsSystem[]> groupSystems;
 
-    public GameData(Camera camera, MyGameWindow game, AudioManager manager, Vector2 gravity, NetworkLogger logger)
+    public GameData(Camera camera, MyGameWindow game, SFX sfx, Vector2 gravity, NetworkLogger logger)
     {
         this.camera = camera;
-        this.audioManager = manager;
+        SFX = sfx;
         this.game = game;
         this.gravity = gravity;
         this.logger = logger;

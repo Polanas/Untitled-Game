@@ -12,17 +12,19 @@ class CoroutinesTest : MySystem
 
     private CoroutineRunner _runner;
 
+  
+
     public override void Init(EcsSystems systems)
     {
         base.Init(systems);
 
         _runner = new();
-        _runner.Run(DoSomeCounting());
     }
 
     public override void Run(EcsSystems systems)
     {
-       // _runner.Update(sharedData.phy.deltaTime);
+       
+        _runner.Update(sharedData.physicsData.deltaTime);
     }
 
     IEnumerator DoSomeCounting()

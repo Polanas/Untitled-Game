@@ -7,8 +7,6 @@ abstract class MySystem : IEcsRunSystem, IEcsInitSystem, IEcsDestroySystem, IEcs
 
     public bool GroupState { set => isGroupActive = value; }
 
-    protected readonly EcsWorldInject _worldInject;
-
     protected SharedData sharedData;
 
     protected EcsWorld world;
@@ -17,7 +15,7 @@ abstract class MySystem : IEcsRunSystem, IEcsInitSystem, IEcsDestroySystem, IEcs
 
     public virtual void Init(EcsSystems systems)
     {
-        world = _worldInject.Value;
+        world = systems.GetWorld();
         sharedData = systems.GetShared<SharedData>();
     }
 

@@ -66,8 +66,8 @@ class DrawCollisionsSystem : MySystem
             ref var transform = ref _transforms.Value.Get(e);
 
             vec2 = staticBody.body.GetPosition();
-            pos.X = vec2.X / _physicsData.PTM;
-            pos.Y = vec2.Y / _physicsData.PTM;
+            pos.X = vec2.X / _physicsData.PTM + _physicsData.PTM;
+            pos.Y = vec2.Y / _physicsData.PTM + _physicsData.PTM;
 
             _drawer.DrawRect(pos, transform.size, new Vector3(0,255,0));
         }

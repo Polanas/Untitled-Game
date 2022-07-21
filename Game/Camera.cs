@@ -16,5 +16,7 @@ class Camera
 
     public Vector2 position;
 
+    public Vector2 offset;
+
     public float zoom;
 }

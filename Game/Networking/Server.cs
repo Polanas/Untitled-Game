@@ -6,6 +6,8 @@ class Server
 {
     private NetServer _server;
 
+    private int _port;
+
     private List<string> _playerIDs;
 
     private Dictionary<string, Vector2> _playerPositions;
@@ -14,8 +16,8 @@ class Server
 
     public Server(SharedData sharedData, int port, string gameName)
     {
-     //   _playerIDs = new();
-    //    _playerPositions = new();
+        //   _playerIDs = new();
+        //    _playerPositions = new();
 
         NetPeerConfiguration config = new("game");
         config.MaximumConnections = 8;
@@ -25,14 +27,19 @@ class Server
         _server = new(config);
         _server.Start();
         bool forwardPortSuccess = _server.UPnP.ForwardPort(port, "description");
-        Console.WriteLine("Forward port: {0}", forwardPortSuccess);
+        Console.WriteLine("Forward port success: {0}", forwardPortSuccess);
 
         _logger = sharedData.gameData.logger;
         _logger.Log("Listening for clients...", LogType.Info, SenderType.Sever);
+
+        _port = port;
     }
 
     public void Update()
     {
+        //bool forwardPortSuccess = _server.UPnP.ForwardPort(_port, "description");
+       // Console.WriteLine("Forward port: {0}", forwardPortSuccess);
+
         NetIncomingMessage message;
 
         while ((message = _server.ReadMessage()) != null)
@@ -40,7 +47,7 @@ class Server
             _logger.Log($"Message recieved", LogType.Info, SenderType.Sever);
             //  _logger.Log($"Message recieved from {NetUtility.ToHexString(message.SenderConnection.RemoteUniqueIdentifier)}", LogType.Info, SenderType.Sever);
 
-          //  List<NetConnection> allConnections = _server.Connections;
+            //  List<NetConnection> allConnections = _server.Connections;
 
             switch (message.MessageType)
             {
@@ -50,7 +57,7 @@ class Server
 
                     if (status == NetConnectionStatus.Connected)
                     {
-                       
+
                     }
                     break;
                 case NetIncomingMessageType.Data:
@@ -93,7 +100,7 @@ class Server
         }
     }
 
-   // public void SendPosition()
+    // public void SendPosition()
 
     //public void SpawnPlayers(List<NetConnection> allConnections, NetConnection local, string playerID)
     //{

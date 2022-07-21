@@ -32,7 +32,7 @@ class SetPostProcessingProjectionSystem : MySystem
 
             if (layer.pixelated)
             {
-                Vector2 camPos = _camera.position * layer.cameraPosModifier;
+                Vector2 camPos = (_camera.position + _camera.offset) * layer.cameraPosModifier;
 
                 Vector2 fracCamPos = new Vector2
                 {

@@ -311,6 +311,32 @@ class RenderSpritesSystem : RenderSystem
         _perFrameInfo.drawCallsPerTextureInfos[sprite.layer].AddDrawCall(sprite);
     }
 
+    public void DrawLine(Vector2 start, Vector2 end, Vector3 color, float thickness)
+    {
+        _perFrameInfo.drawCallsPerTextureInfos[sharedData.renderData.layers["rectangle"]].AddDrawCall(_rectangleTexture,
+                                                  sharedData.renderData.layers["rectangle"],
+                                                  (start + end) / 2,
+                                                  color,
+                                                  1f,
+                                                  new Vector2((start - end).Length, thickness),
+                                                  -Maths.AngleBetweenPoints(end, start),
+                                                  0,
+                                                  _defaultTexCoords);
+    }
+
+    public void DrawRect(Vector2 position, Vector3 color, Vector2 size, float angle)
+    {
+        _perFrameInfo.drawCallsPerTextureInfos[sharedData.renderData.layers["rectangle"]].AddDrawCall(_rectangleTexture,
+                                                   sharedData.renderData.layers["rectangle"],
+                                                   position,
+                                                   color,
+                                                   1f,
+                                                   size,
+                                                   angle,
+                                                   0,
+                                                   _defaultTexCoords);
+    }
+
     public void DrawTexture(Texture texture, Layer layer, Vector2 position, Vector2 size, Vector3 color, float depth = 0, float alpha = 1, float angle = 0) =>
         _perFrameInfo.drawCallsPerTextureInfos[layer].AddDrawCall(texture, layer, position, color, alpha, size, angle, depth, _defaultTexCoords);
 
@@ -318,6 +344,7 @@ class RenderSpritesSystem : RenderSystem
     {
         var renderables = world.GetPool<Renderable>();
         var transforms = world.GetPool<Transform>();
+        var dynamicBodies = world.GetPool<DynamicBody>();
 
         foreach (int entity in world.Filter<Renderable>().End())
         {
@@ -328,17 +355,18 @@ class RenderSpritesSystem : RenderSystem
 
             var sprite = renderable.sprite;
 
-            if (world.HasComponent<Tag>(entity) && world.GetComponent<Tag>(entity) == "player")
-            {
-
-            }
-
             if (transforms.Has(entity))
             {
                 ref var transform = ref transforms.Get(entity);
 
                 sprite.position = transform.position;
                 sprite.angle = transform.angle;
+
+                if (dynamicBodies.Has(entity))
+                {
+                    sprite.offset.Y += sharedData.physicsData.PTM;
+                 //   sprite.offset.X -= sharedData.physicsData.PTM;
+                }
             }
 
             sprite.UpdateFrame();
@@ -348,43 +376,12 @@ class RenderSpritesSystem : RenderSystem
 
             DrawCallsPerTextureInfo perTextureInfo = _perFrameInfo.drawCallsPerTextureInfos[sprite.layer];
             perTextureInfo.AddDrawCall(renderable);
-        }
 
-        var rectPool = world.GetPool<DrawableRectangle>();
-        foreach (var entity in world.Filter<DrawableRectangle>().Inc<Drawable>().End())
-        {
-            ref var rectangle = ref rectPool.Get(entity);
-            _perFrameInfo.drawCallsPerTextureInfos[sharedData.renderData.layers["rectangle"]].AddDrawCall(_rectangleTexture,
-                                                   sharedData.renderData.layers["rectangle"],
-                                                   rectangle.position,
-                                                   rectangle.color,
-                                                   1f,
-                                                   rectangle.size,
-                                                   rectangle.angle,
-                                                   0,
-                                                   _defaultTexCoords);
-
-            ref var drawable = ref _drawablePool.Get(entity);
-            drawable.wereDrawn = true;
-        }
-
-        var linePool = world.GetPool<DrawableLine>();
-        foreach (var entity in world.Filter<DrawableLine>().Inc<Drawable>().End())
-        {
-            var line = linePool.Get(entity);
-            var angle = -Maths.AngleBetweenPoints(line.endPoint, line.startPoint);
-            _perFrameInfo.drawCallsPerTextureInfos[sharedData.renderData.layers["rectangle"]].AddDrawCall(_rectangleTexture,
-                                                   sharedData.renderData.layers["rectangle"],
-                                                   (line.startPoint + line.endPoint) / 2,
-                                                   line.color,
-                                                   1f,
-                                                   new Vector2((line.startPoint - line.endPoint).Length, line.thickness),
-                                                   angle,
-                                                   0,
-                                                   _defaultTexCoords);
-
-            ref var drawable = ref _drawablePool.Get(entity);
-            drawable.wereDrawn = true;
+            if (dynamicBodies.Has(entity))
+            {
+                sprite.offset.Y -= sharedData.physicsData.PTM;
+             //   sprite.offset.X += sharedData.physicsData.PTM;
+            }
         }
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, _FBO);

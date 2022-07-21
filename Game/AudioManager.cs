@@ -33,7 +33,7 @@ class Sound
     }
 }
 
-class AudioManager
+class SFX
 {
 
     private ALContext _context;
@@ -46,9 +46,9 @@ class AudioManager
 
     private int[] _sources = new int[20];
 
-    private int _lastSourceIndex;
+    private int _sourceIndex;
 
-    public unsafe AudioManager()
+    public unsafe SFX()
     {
         _device = ALC.OpenDevice(null);
         _context = ALC.CreateContext(_device, (int*)null);
@@ -79,27 +79,29 @@ class AudioManager
         {
 #if DEBUG
             throw new ArgumentException($"Error: sound with name {name} not found!");
-#endif
-
+#else
             return;
+#endif
         }
 
         var sound = _sounds[name];
 
-        _lastSourceIndex++;
+        _sourceIndex++;
 
-        if (_lastSourceIndex == _sources.Length)
-            _lastSourceIndex = 0;
+        AL.SourceStop(_sources[_sourceIndex-1]);
 
-        AL.GetSource(_sources[_lastSourceIndex], ALGetSourcei.SourceState, out int state);
+        if (_sourceIndex == _sources.Length)
+            _sourceIndex = 0;
+
+        AL.GetSource(_sources[_sourceIndex], ALGetSourcei.SourceState, out int state);
 
         if ((ALSourceState)state != ALSourceState.Playing)
-            AL.SourceStop(_sources[_lastSourceIndex]);
+            AL.SourceStop(_sources[_sourceIndex]);
 
-        AL.Source(_sources[_lastSourceIndex], ALSourcei.Buffer, sound.buffer);
-        AL.Source(_sources[_lastSourceIndex], ALSourcef.Gain, volume);
+        AL.Source(_sources[_sourceIndex], ALSourcei.Buffer, sound.buffer);
+        AL.Source(_sources[_sourceIndex], ALSourcef.Gain, volume);
 
-        AL.SourcePlay(_sources[_lastSourceIndex]);
+        AL.SourcePlay(_sources[_sourceIndex]);
     }
 
     private ALFormat GetSoundFormat(int channels, int bits)
@@ -112,7 +114,7 @@ class AudioManager
         };
     }
 
-    ~AudioManager()
+    ~SFX()
     {
         ALC.DestroyContext(_context);
         ALC.CloseDevice(_device);

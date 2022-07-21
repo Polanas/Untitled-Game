@@ -111,7 +111,7 @@ class Sprite
         size = new Vector2(FrameWidth, FrameHeight);
 
         this.depth = depth;
-        this.layer = layer;
+        this.layer = layer ?? Layer.Default;
     }
 
     public Sprite(Texture texture, Vector2i? frameSize = null, int depth = 0, Layer layer = null)
@@ -132,7 +132,7 @@ class Sprite
         size = new Vector2(FrameWidth, FrameHeight);
 
         this.depth = depth;
-        this.layer = layer;
+        this.layer = layer ?? Layer.Default;
     }
 
     public void SetTexture(Texture texture) =>
@@ -223,17 +223,22 @@ class Sprite
             return;
 
         int savedFrame;
+        float savedFrameInc;
 
         foreach (var anim in _animations)
         {
             if (anim == name)
             {
                 savedFrame = _frameCount;
+                savedFrameInc = _frameInc;
                 ResetCurrentAnimation();
                 _current = new Animation?(anim);
 
                 if (saveFrame)
+                {
                     _frameCount = savedFrame;
+                    _frameInc = savedFrameInc;
+                }
 
                 UpdateVertices();
 
@@ -245,12 +250,16 @@ class Sprite
     public void ResetCurrentAnimation()
     {
         _frameCount = 0;
+        _frameInc = 0;
         _lastFrame = 0;
         _finished = false;
     }
 
     private void UpdateVertices()
     {
+        if (TexWidth < FrameWidth || TexHeight < FrameHeight)
+            return;
+
         Vector2 pos;
 
         if (_current != null)

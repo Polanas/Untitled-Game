@@ -8,11 +8,11 @@ namespace Game;
 
 static class Mouse
 {
-    public static bool InTheRightHalf => _game.MousePosition.X >= MyGameWindow.ScreenSize.X / 2;
+    public static bool InTheRightSide => _game.MousePosition.X >= MyGameWindow.ScreenSize.X / 2;
 
-    public static bool InTheLeftHalf => _game.MousePosition.X <= MyGameWindow.ScreenSize.X / 2;
+    public static bool InTheLeftSize => _game.MousePosition.X <= MyGameWindow.ScreenSize.X / 2;
 
-    public static Vector2 ScreenPosition => _game.MousePosition;
+    public static Vector2 ScreenPosition => _game.MousePosition/8f;
 
     public static Vector2 Velocity => _game.MouseState.Delta;
 

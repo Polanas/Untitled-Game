@@ -82,7 +82,7 @@ class Shader
 
         fragShader = GL.CreateShader(ShaderType.FragmentShader);
         GL.ShaderSource(fragShader, fragSource);
-        GL.CompileShader(vertShader);
+        GL.CompileShader(fragShader);
 
         bool hasGShader = geometrySource != null;
 

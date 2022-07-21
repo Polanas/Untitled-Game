@@ -33,10 +33,10 @@ class CameraSystem : MySystem
             layer = sharedData.renderData.layersList[i];
 
             if (layer.pixelated)
-                sharedData.renderData.cameraLayerProjections[layer] = Maths.CreateCameraMatrix(new Vector2(MathF.Floor(_camera.position.X * layer.cameraPosModifier),
-                                                                                               MathF.Floor(_camera.position.Y * layer.cameraPosModifier)),
+                sharedData.renderData.cameraLayerProjections[layer] = Maths.CreateCameraMatrix(new Vector2(MathF.Floor((_camera.position.X + _camera.offset.X) * layer.cameraPosModifier),
+                                                                                               MathF.Floor((_camera.position.Y + _camera.offset.Y) * layer.cameraPosModifier)),
                                                                                                (Vector2)MyGameWindow.ScreenSize / MyGameWindow.FullToPixelatedRatio / _camera.zoom);
-            else sharedData.renderData.cameraLayerProjections[layer] = Maths.CreateCameraMatrix(_camera.position * layer.cameraPosModifier, (Vector2)MyGameWindow.ScreenSize / _camera.zoom / 8);
+            else sharedData.renderData.cameraLayerProjections[layer] = Maths.CreateCameraMatrix((_camera.position + _camera.offset) * layer.cameraPosModifier, (Vector2)MyGameWindow.ScreenSize / _camera.zoom / 8);
         }
 
     }

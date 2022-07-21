@@ -10,7 +10,16 @@ namespace Game;
 class Layer
 {
 
+    public static Layer Default { get; private set; }
+
+    public static Layer UI { get; private set; }
+
+    public static Layer Text { get; private set; }
+
+    public static Layer Front { get; private set; }
+
     public Texture ScreenTexture => _screenTexture;
+
 
     public readonly bool pixelated;
 
@@ -50,5 +59,13 @@ class Layer
         GL.TextureParameter(texture, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
         _screenTexture = new Texture(texture, size.X, size.Y);
+    }
+
+    public static void InitLayers(Layer defaultLayer, Layer frontLayer, Layer UILayer, Layer textLayer)
+    {
+        Default = defaultLayer;
+        Front = frontLayer;
+        UI = UILayer;
+        Text = textLayer;
     }
 }
